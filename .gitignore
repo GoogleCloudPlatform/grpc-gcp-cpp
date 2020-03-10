@@ -1,0 +1,8 @@
+# bazel outs
+bazel-*
+
+# vim generated swap files
+*.swp
+
+# VisualStudio Code
+.vscode
