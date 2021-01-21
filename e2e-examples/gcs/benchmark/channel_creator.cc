@@ -9,7 +9,7 @@ std::shared_ptr<grpc::Channel> CreateGrpcChannel(absl::string_view host,
                                                  absl::string_view access_token,
                                                  absl::string_view network) {
   if (access_token.empty()) {
-    std::shared_ptr<grpc_impl::ChannelCredentials> channel_cred;
+    std::shared_ptr<grpc::ChannelCredentials> channel_cred;
     grpc::ChannelArguments channel_args;
     channel_args.SetServiceConfigJSON(
         "{\"loadBalancingConfig\":[{\"grpclb\":{"
