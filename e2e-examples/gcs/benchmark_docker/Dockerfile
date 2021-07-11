@@ -14,5 +14,6 @@ COPY ./ /work
 RUN cd /work && bazel build -c opt e2e-examples/gcs/benchmark:benchmark
 
 FROM debian:stable-slim
+RUN apt update && apt -y install ca-certificates
 COPY --from=0 /work/bazel-bin/e2e-examples/gcs/benchmark/benchmark /
 CMD ["./benchmark"]
