@@ -38,6 +38,7 @@ load("@com_google_googleapis//:repository_rules.bzl", "switched_rules_by_languag
 switched_rules_by_language(
     name = "com_google_googleapis_imports",
     cc = True,
+    grpc = True,
 )
 
 load('@com_github_grpc_grpc//bazel:grpc_deps.bzl', 'grpc_deps')
