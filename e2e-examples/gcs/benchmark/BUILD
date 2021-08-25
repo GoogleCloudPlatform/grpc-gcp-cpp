@@ -7,7 +7,7 @@ cc_library(
         "channel_creator.cc",
     ],
     deps = [
-        "//google/storage/v1:storage_cc_grpc",
+        "@com_google_googleapis//google/storage/v1:storage_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
@@ -23,7 +23,7 @@ cc_library(
         "channel_policy.cc",
     ],
     deps = [
-        "//google/storage/v1:storage_cc_grpc",
+        "@com_google_googleapis//google/storage/v1:storage_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
@@ -50,7 +50,7 @@ cc_library(
     ],
     deps = [
         "common",
-        "//google/storage/v1:storage_cc_grpc",
+        "@com_google_googleapis//google/storage/v1:storage_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
@@ -69,7 +69,7 @@ cc_library(
         "common",
         "channel_policy",
         "runner_watcher",
-        "//google/storage/v1:storage_cc_grpc",
+        "@com_google_googleapis//google/storage/v1:storage_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
@@ -90,7 +90,7 @@ cc_binary(
         "channel_policy", 
         "runner",
         "runner_watcher",
-        "//google/storage/v1:storage_cc_grpc",
+        "@com_google_googleapis//google/storage/v1:storage_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",
         "@com_github_grpc_grpc//src/proto/grpc/health/v1:health_proto",
 
