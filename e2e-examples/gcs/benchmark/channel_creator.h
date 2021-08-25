@@ -9,6 +9,7 @@
 
 std::shared_ptr<grpc::Channel> CreateGrpcChannel(absl::string_view host,
                                                  absl::string_view access_token,
-                                                 absl::string_view network);
+                                                 absl::string_view network,
+                                                 bool use_td);
 
 #endif  // GCS_BENCHMARK_CHANNEL_CREATOR_H_

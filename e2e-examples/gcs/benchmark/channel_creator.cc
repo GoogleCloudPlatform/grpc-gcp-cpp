@@ -7,35 +7,48 @@
 
 std::shared_ptr<grpc::Channel> CreateGrpcChannel(absl::string_view host,
                                                  absl::string_view access_token,
-                                                 absl::string_view network) {
+                                                 absl::string_view network,
+                                                 bool use_td) {
+  std::string target = std::string(host);
+  if (use_td) {
+    target = "google-c2p:///" + target;
+  }
   if (access_token.empty()) {
     std::shared_ptr<grpc::ChannelCredentials> channel_cred;
     grpc::ChannelArguments channel_args;
-    channel_args.SetServiceConfigJSON(
-        "{\"loadBalancingConfig\":[{\"grpclb\":{"
-        "\"childPolicy\":[{\"pick_first\":{}}]}}]"
-        "}");
+    if (!use_td) {
+      channel_args.SetServiceConfigJSON(
+          "{\"loadBalancingConfig\":[{\"grpclb\":{"
+          "\"childPolicy\":[{\"pick_first\":{}}]}}]"
+          "}");
+    }
     if (network == "cfe") {
-      channel_args.SetInt("grpc.dns_enable_srv_queries",
-                          0);  // Disable DirectPath
+      if (!use_td) {
+        channel_args.SetInt("grpc.dns_enable_srv_queries",
+                            0);  // Disable DirectPath
+      }
     } else if (network == "dp") {
       grpc::experimental::AltsCredentialsOptions alts_opts;
       channel_cred = grpc::CompositeChannelCredentials(
           grpc::experimental::AltsCredentials(alts_opts),
           grpc::GoogleComputeEngineCredentials());
-      channel_args.SetInt("grpc.dns_enable_srv_queries",
-                          1);  // Enable DirectPath
+      if (!use_td) {
+        channel_args.SetInt("grpc.dns_enable_srv_queries",
+                            1);  // Enable DirectPath
+      }
     } else if (network == "dp2") {
       channel_cred = grpc::GoogleDefaultCredentials();
-      channel_args.SetInt("grpc.dns_enable_srv_queries",
-                          1);  // Enable DirectPath
+      if (!use_td) {
+        channel_args.SetInt("grpc.dns_enable_srv_queries",
+                            1);  // Enable DirectPath
+      }
     }
 
     if (channel_cred == nullptr) {
       channel_cred = grpc::GoogleDefaultCredentials();
     }
     std::shared_ptr<grpc::Channel> channel = grpc::CreateCustomChannel(
-        std::string(host), channel_cred, channel_args);
+        target, channel_cred, channel_args);
     return channel;
   } else {
     std::shared_ptr<grpc::ChannelCredentials> credentials;
@@ -50,7 +63,7 @@ std::shared_ptr<grpc::Channel> CreateGrpcChannel(absl::string_view host,
                                                       call_credentials);
     }
     std::shared_ptr<grpc::Channel> channel =
-        grpc::CreateChannel(std::string(host), credentials);
+        grpc::CreateChannel(target, credentials);
     return channel;
   }
 }
