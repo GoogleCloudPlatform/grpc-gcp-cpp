@@ -11,17 +11,17 @@ http_archive(
 
 http_archive(
     name = "com_github_grpc_grpc",
-    sha256 = "f909e389ab49861cfa11c48d2fa658bc169cfd775dcbe93205af654079bf8926",
-    strip_prefix = "grpc-54dc182082db941aa67c7c3f93ad858c99a16d7d",
-    url = "https://github.com/grpc/grpc/archive/54dc182082db941aa67c7c3f93ad858c99a16d7d.tar.gz",
+    sha256 = "1b9b77f894d4d2cca73f534f4bee574588e5ed7f31794715073e4957fb790cee",
+    strip_prefix = "grpc-58602e20a3f3e48f24a4114c757099b25b947f7b",
+    url = "https://github.com/grpc/grpc/archive/58602e20a3f3e48f24a4114c757099b25b947f7b.tar.gz",
 )
 
 http_archive(
     name = "com_google_googleapis",
-    sha256 = "136e333508337030e112afe4974e2e595a8f4751e9a1aefc598b7aa7282740db",
-    strip_prefix = "googleapis-a9a9950dc472e7036e05df8dd29597cd19235649",
+    sha256 = "09baebb48905d27f047625e2ed05331ec43562afffe9e90f103e36c0a7a6e40d",
+    strip_prefix = "googleapis-cdc9747a73f6af2393ab51490fc3a3c11ff3620f",
     urls = [
-        "https://github.com/googleapis/googleapis/archive/a9a9950dc472e7036e05df8dd29597cd19235649.tar.gz",
+        "https://github.com/googleapis/googleapis/archive/cdc9747a73f6af2393ab51490fc3a3c11ff3620f.tar.gz",
     ],
 )
 
