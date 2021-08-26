@@ -1,16 +1,15 @@
 #ifndef GCS_SAMPLE_CHANNEL_MANAGER_H_
 #define GCS_SAMPLE_CHANNEL_MANAGER_H_
 
-#include <memory>
-
 #include <grpcpp/channel.h>
+
+#include <memory>
 
 #include "absl/memory/memory.h"
 #include "absl/strings/string_view.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/time/time.h"
-
-#include "google/storage/v1/storage.grpc.pb.h"
+#include "google/storage/v2/storage.grpc.pb.h"
 
 class ChannelManager;
 

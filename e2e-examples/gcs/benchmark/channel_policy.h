@@ -1,19 +1,18 @@
 #ifndef GCS_BENCHMARK_CHANNEL_POLICY_H_
 #define GCS_BENCHMARK_CHANNEL_POLICY_H_
 
-#include <memory>
-
 #include <grpcpp/channel.h>
+
+#include <memory>
 
 #include "absl/strings/string_view.h"
 #include "absl/time/time.h"
-
-#include "google/storage/v1/storage.grpc.pb.h"
+#include "google/storage/v2/storage.grpc.pb.h"
 
 class StorageStubProvider {
  public:
   struct StubHolder {
-    std::unique_ptr<google::storage::v1::Storage::Stub> stub;
+    std::unique_ptr<google::storage::v2::Storage::Stub> stub;
     void* handle;
   };
 
