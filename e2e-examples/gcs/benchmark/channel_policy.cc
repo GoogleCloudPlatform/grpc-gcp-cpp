@@ -14,7 +14,7 @@ class ConstChannelPool : public StorageStubProvider {
 
   StorageStubProvider::StubHolder GetStorageStub() override {
     StorageStubProvider::StubHolder holder = {
-        google::storage::v1::Storage::NewStub(channel_), (void*)channel_.get()};
+        google::storage::v2::Storage::NewStub(channel_), (void*)channel_.get()};
     return holder;
   }
 
@@ -49,7 +49,7 @@ class CreateNewChannelStubProvider : public StorageStubProvider {
   StorageStubProvider::StubHolder GetStorageStub() override {
     auto channel = channel_creator_();
     StorageStubProvider::StubHolder holder = {
-        google::storage::v1::Storage::NewStub(channel), (void*)channel.get()};
+        google::storage::v2::Storage::NewStub(channel), (void*)channel.get()};
     return holder;
   }
 
@@ -83,7 +83,7 @@ class RoundRobinChannelPool : public StorageStubProvider {
     absl::MutexLock l(&lock_);
     cursor_ = (cursor_ + 1) % channels_.size();
     StorageStubProvider::StubHolder holder = {
-        google::storage::v1::Storage::NewStub(channels_[cursor_]),
+        google::storage::v2::Storage::NewStub(channels_[cursor_]),
         (void*)channels_[cursor_].get()};
     return holder;
   }
@@ -146,7 +146,7 @@ class RoundRobinPlusChannelPool : public StorageStubProvider {
     // Increases in-use count for the channel to be returned.
     least->in_use_count += 1;
     StorageStubProvider::StubHolder holder = {
-        google::storage::v1::Storage::NewStub(least->channel),
+        google::storage::v2::Storage::NewStub(least->channel),
         (void*)least->channel.get()};
     return holder;
   }
@@ -219,7 +219,7 @@ class SmartRoundRobinChannelPool : public StorageStubProvider {
     absl::MutexLock l(&lock_);
     cursor_ = (cursor_ + 1) % channels_.size();
     StorageStubProvider::StubHolder holder = {
-        google::storage::v1::Storage::NewStub(channels_[cursor_]),
+        google::storage::v2::Storage::NewStub(channels_[cursor_]),
         (void*)channels_[cursor_].get()};
     return holder;
   }

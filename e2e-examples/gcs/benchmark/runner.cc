@@ -1,18 +1,19 @@
 #include "runner.h"
 
+#include "absl/strings/string_view.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/str_cat.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
-
 #include "e2e-examples/gcs/crc32c/crc32c.h"
 
-using ::google::storage::v1::GetObjectMediaRequest;
-using ::google::storage::v1::GetObjectMediaResponse;
-using ::google::storage::v1::InsertObjectRequest;
-using ::google::storage::v1::InsertObjectSpec;
-using ::google::storage::v1::Object;
-using ::google::storage::v1::StartResumableWriteRequest;
-using ::google::storage::v1::StartResumableWriteResponse;
+using ::google::storage::v2::Object;
+using ::google::storage::v2::ReadObjectRequest;
+using ::google::storage::v2::ReadObjectResponse;
+using ::google::storage::v2::StartResumableWriteRequest;
+using ::google::storage::v2::StartResumableWriteResponse;
+using ::google::storage::v2::WriteObjectRequest;
+using ::google::storage::v2::WriteObjectResponse;
 
 int32_t GetChannelId(void* stub_handle) {
   static std::unordered_map<void*, int32_t> handle_to_id_map;
@@ -27,6 +28,11 @@ int32_t GetChannelId(void* stub_handle) {
   auto new_id = int32_t(handle_to_id_map.size() + 1);
   handle_to_id_map[stub_handle] = new_id;
   return new_id;
+}
+
+std::string ToV2BucketName(absl::string_view bucket_name) {
+  static const absl::string_view V2_BUCKET_NAME_PREFIX = "projects/_/buckets/";
+  return absl::StrCat(V2_BUCKET_NAME_PREFIX, bucket_name);
 }
 
 Runner::Runner(Runner::Parameter parameter,
@@ -69,8 +75,8 @@ bool Runner::RunRead() {
       object = parameter_.object;
     }
 
-    GetObjectMediaRequest request;
-    request.set_bucket(parameter_.bucket);
+    ReadObjectRequest request;
+    request.set_bucket(ToV2BucketName(parameter_.bucket));
     request.set_object(object);
     if (parameter_.read_offset >= 0) {
       request.set_read_offset(parameter_.read_offset);
@@ -81,20 +87,20 @@ bool Runner::RunRead() {
 
     absl::Time run_start = absl::Now();
     grpc::ClientContext context;
-    std::unique_ptr<grpc::ClientReader<GetObjectMediaResponse>> reader =
-        storage.stub->GetObjectMedia(&context, request);
+    std::unique_ptr<grpc::ClientReader<ReadObjectResponse>> reader =
+        storage.stub->ReadObject(&context, request);
 
     int64_t total_bytes = 0;
     std::vector<RunnerWatcher::Chunk> chunks;
     chunks.reserve(256);
 
-    GetObjectMediaResponse response;
+    ReadObjectResponse response;
     while (reader->Read(&response)) {
       const auto& content = response.checksummed_data().content();
       int64_t content_size = content.size();
 
       if (parameter_.check_crc32c) {
-        uint32_t content_crc = response.checksummed_data().crc32c().value();
+        uint32_t content_crc = response.checksummed_data().crc32c();
         uint32_t calculated_crc =
             crc32c_value((const uint8_t*)content.c_str(), content_size);
         if (content_crc != calculated_crc) {
@@ -187,8 +193,8 @@ bool Runner::RunWrite() {
       grpc::ClientContext context;
       StartResumableWriteRequest start_request;
       auto resource =
-          start_request.mutable_insert_object_spec()->mutable_resource();
-      resource->set_bucket(parameter_.bucket);
+          start_request.mutable_write_object_spec()->mutable_resource();
+      resource->set_bucket(ToV2BucketName(parameter_.bucket));
       resource->set_name(object);
       StartResumableWriteResponse start_response;
       auto status = storage.stub->StartResumableWrite(&context, start_request,
@@ -202,9 +208,9 @@ bool Runner::RunWrite() {
     }
 
     grpc::ClientContext context;
-    Object reply;
-    std::unique_ptr<grpc::ClientWriter<InsertObjectRequest>> writer(
-        storage.stub->InsertObject(&context, &reply));
+    WriteObjectResponse reply;
+    std::unique_ptr<grpc::ClientWriter<WriteObjectRequest>> writer(
+        storage.stub->WriteObject(&context, &reply));
 
     int64_t total_bytes = 0;
     std::vector<RunnerWatcher::Chunk> chunks;
@@ -215,14 +221,14 @@ bool Runner::RunWrite() {
       bool last_request = (o + max_chunk_size) >= parameter_.write_size;
       int64_t chunk_size = std::min(max_chunk_size, parameter_.write_size - o);
 
-      InsertObjectRequest request;
+      WriteObjectRequest request;
       if (first_request) {
         if (parameter_.resumable_write) {
           request.set_upload_id(upload_id);
         } else {
           auto resource =
-              request.mutable_insert_object_spec()->mutable_resource();
-          resource->set_bucket(parameter_.bucket);
+              request.mutable_write_object_spec()->mutable_resource();
+          resource->set_bucket(ToV2BucketName(parameter_.bucket));
           resource->set_name(object);
         }
       }
@@ -230,7 +236,7 @@ bool Runner::RunWrite() {
       request.mutable_checksummed_data()->set_content(&content[0], chunk_size);
       if (parameter_.check_crc32c) {
         uint32_t crc32c = crc32c_value((const uint8_t*)&content[0], chunk_size);
-        request.mutable_checksummed_data()->mutable_crc32c()->set_value(crc32c);
+        request.mutable_checksummed_data()->set_crc32c(crc32c);
 
         object_crc32c = crc32c_extend(object_crc32c,
                                       (const uint8_t*)&content[0], chunk_size);
@@ -240,8 +246,7 @@ bool Runner::RunWrite() {
       if (last_request) {
         request.set_finish_write(true);
         if (parameter_.check_crc32c) {
-          request.mutable_object_checksums()->mutable_crc32c()->set_value(
-              object_crc32c);
+          request.mutable_object_checksums()->set_crc32c(object_crc32c);
         }
       }
 

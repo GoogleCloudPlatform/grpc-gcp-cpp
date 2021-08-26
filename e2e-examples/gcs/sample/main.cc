@@ -1,6 +1,6 @@
-#include <memory>
-#include <string>
-#include <thread>
+#include <grpcpp/channel.h>
+#include <grpcpp/client_context.h>
+#include <grpcpp/create_channel.h>
 
 #include <fstream>
 #include <memory>
@@ -9,18 +9,13 @@
 #include <thread>
 #include <unordered_map>
 
-#include <grpcpp/channel.h>
-#include <grpcpp/client_context.h>
-#include <grpcpp/create_channel.h>
-
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
 #include "absl/strings/str_format.h"
-
 #include "channel_manager.h"
 
-using GetObjectMediaRequest = google::storage::v1::GetObjectMediaRequest;
-using GetObjectMediaResponse = google::storage::v1::GetObjectMediaResponse;
+using ReadObjectRequest = google::storage::v2::ReadObjectRequest;
+using ReadObjectResponse = google::storage::v2::ReadObjectResponse;
 
 ABSL_FLAG(bool, directpath, true, "Whether to allow DirectPath");
 ABSL_FLAG(std::string, access_token, "", "Access token for auth");
@@ -84,17 +79,17 @@ void worker(ChannelManager& channel_manager, std::atomic_size_t& read_bytes) {
     for (int j = 0; j < absl::GetFlag(FLAGS_retries); j++) {
       auto channel_handle = channel_manager.GetHandle();
 
-      GetObjectMediaRequest request;
-      request.set_bucket(absl::GetFlag(FLAGS_bucket));
+      ReadObjectRequest request;
+      request.set_bucket("projects/_/buckets/" + absl::GetFlag(FLAGS_bucket));
       request.set_object(absl::GetFlag(FLAGS_object));
 
       grpc::ClientContext context;
-      std::unique_ptr<grpc::ClientReader<GetObjectMediaResponse>> reader =
-          channel_handle.GetStub<google::storage::v1::Storage::Stub>()
-              ->GetObjectMedia(&context, request);
+      std::unique_ptr<grpc::ClientReader<ReadObjectResponse>> reader =
+          channel_handle.GetStub<google::storage::v2::Storage::Stub>()
+              ->ReadObject(&context, request);
 
       int64_t total_bytes = 0;
-      GetObjectMediaResponse response;
+      ReadObjectResponse response;
       while (reader->Read(&response)) {
         int64_t content_size = response.checksummed_data().content().size();
         total_bytes += content_size;
@@ -103,9 +98,12 @@ void worker(ChannelManager& channel_manager, std::atomic_size_t& read_bytes) {
 
       auto status = reader->Finish();
       if (!status.ok()) {
-        std::cerr << absl::StrFormat(
-            "Download Error: Code=%d Message=%s Retries=%d from %s", status.error_code(),
-            status.error_message(), j, context.peer()) << std::endl;
+        std::cerr
+            << absl::StrFormat(
+                   "Download Error: Code=%d Message=%s Retries=%d from %s",
+                   status.error_code(), status.error_message(), j,
+                   context.peer())
+            << std::endl;
       }
       channel_handle.OnRpcDone(status);
 
