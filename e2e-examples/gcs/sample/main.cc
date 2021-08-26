@@ -80,7 +80,7 @@ void worker(ChannelManager& channel_manager, std::atomic_size_t& read_bytes) {
       auto channel_handle = channel_manager.GetHandle();
 
       ReadObjectRequest request;
-      request.set_bucket(absl::GetFlag(FLAGS_bucket));
+      request.set_bucket("projects/_/buckets/" + absl::GetFlag(FLAGS_bucket));
       request.set_object(absl::GetFlag(FLAGS_object));
 
       grpc::ClientContext context;

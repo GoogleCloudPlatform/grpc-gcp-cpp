@@ -194,7 +194,7 @@ bool Runner::RunWrite() {
       StartResumableWriteRequest start_request;
       auto resource =
           start_request.mutable_write_object_spec()->mutable_resource();
-      resource->set_bucket(parameter_.bucket);
+      resource->set_bucket(ToV2BucketName(parameter_.bucket));
       resource->set_name(object);
       StartResumableWriteResponse start_response;
       auto status = storage.stub->StartResumableWrite(&context, start_request,
@@ -228,7 +228,7 @@ bool Runner::RunWrite() {
         } else {
           auto resource =
               request.mutable_write_object_spec()->mutable_resource();
-          resource->set_bucket(parameter_.bucket);
+          resource->set_bucket(ToV2BucketName(parameter_.bucket));
           resource->set_name(object);
         }
       }
