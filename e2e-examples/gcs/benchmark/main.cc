@@ -17,7 +17,6 @@
 #include "absl/flags/parse.h"
 #include "absl/strings/str_format.h"
 #include "absl/time/time.h"
-
 #include "channel_creator.h"
 #include "channel_policy.h"
 #include "print_result.h"
@@ -30,6 +29,8 @@ using std::string;
 
 ABSL_FLAG(string, access_token, "", "Access token for auth");
 ABSL_FLAG(string, network, "default", "Network path (default, cfe, dp)");
+ABSL_FLAG(bool, rr, false,
+          "Use round_robin grpclb policy (otherwise pick_first)");
 ABSL_FLAG(bool, td, false, "Use Traffic Director");
 ABSL_FLAG(string, operation, "read", "Operation type (read, write)");
 ABSL_FLAG(string, host, "dns:///storage.googleapis.com:443", "Host to reach");
@@ -52,7 +53,7 @@ ABSL_FLAG(bool, resumable, false, "Use resumable-write for writing");
 ABSL_FLAG(int, ctest, 0, "Test to get a list of peers from grpclb");
 ABSL_FLAG(int, threads, 1, "The number of threads running downloding objects");
 ABSL_FLAG(string, cpolicy, "perthread",
-          "Channel Policy (perthread, percall, pool, bpool, spool)");
+          "Channel Policy (perthread, percall, const, pool, bpool, spool)");
 ABSL_FLAG(
     int, carg, 0,
     "Parameter for cpolicy (e.g. pool uses this as the number of channels)");
@@ -68,7 +69,7 @@ std::shared_ptr<grpc::Channel> CreateBenchmarkGrpcChannel() {
   return CreateGrpcChannel(absl::GetFlag(FLAGS_host),
                            absl::GetFlag(FLAGS_access_token),
                            absl::GetFlag(FLAGS_network),
-                           absl::GetFlag(FLAGS_td));
+                           absl::GetFlag(FLAGS_rr), absl::GetFlag(FLAGS_td));
 }
 
 int main(int argc, char** argv) {
@@ -91,8 +92,8 @@ int main(int argc, char** argv) {
   }
 
   const std::string cpolicy = absl::GetFlag(FLAGS_cpolicy);
-  if (cpolicy != "perthread" && cpolicy != "percall" && cpolicy != "pool" &&
-      cpolicy != "bpool" && cpolicy != "spool") {
+  if (cpolicy != "perthread" && cpolicy != "percall" && cpolicy != "const" &&
+      cpolicy != "pool" && cpolicy != "bpool" && cpolicy != "spool") {
     std::cerr << "Invalid cpolicy: " << cpolicy << std::endl;
     return 1;
   }
@@ -101,7 +102,9 @@ int main(int argc, char** argv) {
 
   // Initializes a gRPC channel pool.
   std::shared_ptr<StorageStubProvider> stub_pool;
-  if (cpolicy == "pool") {
+  if (cpolicy == "const") {
+    stub_pool = CreateConstChannelPool(&CreateBenchmarkGrpcChannel);
+  } else if (cpolicy == "pool") {
     if (carg <= 0) {
       std::cerr << "Invalid carg: " << carg << std::endl;
       return 1;

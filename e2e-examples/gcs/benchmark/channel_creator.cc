@@ -5,10 +5,12 @@
 #include <grpcpp/create_channel.h>
 #include <grpcpp/security/credentials.h>
 
+#include "absl/strings/str_format.h"
+
 std::shared_ptr<grpc::Channel> CreateGrpcChannel(absl::string_view host,
                                                  absl::string_view access_token,
                                                  absl::string_view network,
-                                                 bool use_td) {
+                                                 bool use_rr, bool use_td) {
   std::string target = std::string(host);
   if (use_td) {
     target = "google-c2p:///" + target;
@@ -17,10 +19,12 @@ std::shared_ptr<grpc::Channel> CreateGrpcChannel(absl::string_view host,
     std::shared_ptr<grpc::ChannelCredentials> channel_cred;
     grpc::ChannelArguments channel_args;
     if (!use_td) {
+      const char* policy = use_rr ? "round_robin" : "pick_first";
       channel_args.SetServiceConfigJSON(
-          "{\"loadBalancingConfig\":[{\"grpclb\":{"
-          "\"childPolicy\":[{\"pick_first\":{}}]}}]"
-          "}");
+          absl::StrFormat("{\"loadBalancingConfig\":[{\"grpclb\":{"
+                          "\"childPolicy\":[{\"%s\":{}}]}}]"
+                          "}",
+                          policy));
     }
     if (network == "cfe") {
       if (!use_td) {
@@ -47,8 +51,8 @@ std::shared_ptr<grpc::Channel> CreateGrpcChannel(absl::string_view host,
     if (channel_cred == nullptr) {
       channel_cred = grpc::GoogleDefaultCredentials();
     }
-    std::shared_ptr<grpc::Channel> channel = grpc::CreateCustomChannel(
-        target, channel_cred, channel_args);
+    std::shared_ptr<grpc::Channel> channel =
+        grpc::CreateCustomChannel(target, channel_cred, channel_args);
     return channel;
   } else {
     std::shared_ptr<grpc::ChannelCredentials> credentials;
