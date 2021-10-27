@@ -30,6 +30,7 @@ using std::string;
 
 ABSL_FLAG(string, access_token, "", "Access token for auth");
 ABSL_FLAG(string, network, "default", "Network path (default, cfe, dp)");
+ABSL_FLAG(bool, rr, false, "Use round_robin grpclb policy (otherwise pick_first)");
 ABSL_FLAG(bool, td, false, "Use Traffic Director");
 ABSL_FLAG(string, operation, "read", "Operation type (read, write)");
 ABSL_FLAG(string, host, "dns:///storage.googleapis.com:443", "Host to reach");
@@ -68,6 +69,7 @@ std::shared_ptr<grpc::Channel> CreateBenchmarkGrpcChannel() {
   return CreateGrpcChannel(absl::GetFlag(FLAGS_host),
                            absl::GetFlag(FLAGS_access_token),
                            absl::GetFlag(FLAGS_network),
+                           absl::GetFlag(FLAGS_rr),
                            absl::GetFlag(FLAGS_td));
 }
 
