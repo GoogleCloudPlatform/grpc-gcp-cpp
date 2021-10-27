@@ -92,8 +92,8 @@ int main(int argc, char** argv) {
   }
 
   const std::string cpolicy = absl::GetFlag(FLAGS_cpolicy);
-  if (cpolicy != "perthread" && cpolicy != "percall" && cpolicy != "pool" &&
-      cpolicy != "bpool" && cpolicy != "spool") {
+  if (cpolicy != "perthread" && cpolicy != "percall" && cpolicy != "const" &&
+      cpolicy != "pool" && cpolicy != "bpool" && cpolicy != "spool") {
     std::cerr << "Invalid cpolicy: " << cpolicy << std::endl;
     return 1;
   }
