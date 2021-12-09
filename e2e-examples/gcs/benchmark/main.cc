@@ -46,7 +46,7 @@ ABSL_FLAG(int, object_stop, 0,
 ABSL_FLAG(int64_t, read_offset, -1, "Read offset for read");
 ABSL_FLAG(int64_t, read_limit, -1, "Read limit for read");
 ABSL_FLAG(int64_t, write_size, 0, "Write size");
-ABSL_FLAG(absl::Duration, timeout, absl::ZeroDuration(), "Timeout for the call. (Default: none)");
+ABSL_FLAG(absl::Duration, timeout, absl::InfiniteDuration(), "Timeout for the call. (Default: none)");
 ABSL_FLAG(int, runs, 1, "Number of times to run the download");
 ABSL_FLAG(bool, verbose, false, "Show debug output and progress updates");
 ABSL_FLAG(bool, crc32c, false, "Check CRC32C check for received content");
