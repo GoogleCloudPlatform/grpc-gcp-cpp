@@ -1,8 +1,8 @@
 #include "runner.h"
 
-#include "absl/strings/string_view.h"
-#include "absl/strings/str_format.h"
 #include "absl/strings/str_cat.h"
+#include "absl/strings/str_format.h"
+#include "absl/strings/string_view.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "e2e-examples/gcs/crc32c/crc32c.h"
@@ -33,6 +33,14 @@ int32_t GetChannelId(void* stub_handle) {
 std::string ToV2BucketName(absl::string_view bucket_name) {
   static const absl::string_view V2_BUCKET_NAME_PREFIX = "projects/_/buckets/";
   return absl::StrCat(V2_BUCKET_NAME_PREFIX, bucket_name);
+}
+
+void ApplyCallTimeout(grpc::ClientContext* context, absl::Duration timeout) {
+  if (timeout != absl::InfiniteDuration()) {
+    context->set_deadline(
+        std::chrono::system_clock::now() +
+        std::chrono::milliseconds(absl::ToInt64Milliseconds(timeout)));
+  }
 }
 
 Runner::Runner(Runner::Parameter parameter,
@@ -87,6 +95,7 @@ bool Runner::RunRead() {
 
     absl::Time run_start = absl::Now();
     grpc::ClientContext context;
+    ApplyCallTimeout(&context, parameter_.timeout);
     std::unique_ptr<grpc::ClientReader<ReadObjectResponse>> reader =
         storage.stub->ReadObject(&context, request);
 
@@ -191,6 +200,7 @@ bool Runner::RunWrite() {
     std::string upload_id;
     if (parameter_.resumable_write) {
       grpc::ClientContext context;
+      ApplyCallTimeout(&context, parameter_.timeout);
       StartResumableWriteRequest start_request;
       auto resource =
           start_request.mutable_write_object_spec()->mutable_resource();
@@ -208,6 +218,7 @@ bool Runner::RunWrite() {
     }
 
     grpc::ClientContext context;
+    ApplyCallTimeout(&context, parameter_.timeout);
     WriteObjectResponse reply;
     std::unique_ptr<grpc::ClientWriter<WriteObjectRequest>> writer(
         storage.stub->WriteObject(&context, &reply));
