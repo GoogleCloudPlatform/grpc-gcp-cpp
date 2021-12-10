@@ -51,6 +51,7 @@ ABSL_FLAG(int, runs, 1, "Number of times to run the download");
 ABSL_FLAG(bool, verbose, false, "Show debug output and progress updates");
 ABSL_FLAG(bool, crc32c, false, "Check CRC32C check for received content");
 ABSL_FLAG(bool, resumable, false, "Use resumable-write for writing");
+ABSL_FLAG(bool, trying, false, "Keep trying the same operation if failed");
 ABSL_FLAG(int, ctest, 0, "Test to get a list of peers from grpclb");
 ABSL_FLAG(int, threads, 1, "The number of threads running downloding objects");
 ABSL_FLAG(string, cpolicy, "perthread",
@@ -148,6 +149,7 @@ int main(int argc, char** argv) {
     param.verbose = absl::GetFlag(FLAGS_verbose);
     param.check_crc32c = absl::GetFlag(FLAGS_crc32c);
     param.resumable_write = absl::GetFlag(FLAGS_resumable);
+    param.keep_trying = absl::GetFlag(FLAGS_trying);
     // If the number of channels is given, it uses the intialized
     // channel pool. Otherwise each thread is going to get a dedicated
     // channel.

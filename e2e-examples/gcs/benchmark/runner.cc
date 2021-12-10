@@ -75,7 +75,7 @@ bool Runner::RunRead() {
       int cx = snprintf(real_object, sizeof(real_object),
                         parameter_.object_format.c_str(), index);
       if (cx < 0) {
-        std::cerr << "snprintf(object, index) failed" << std::endl;
+        std::cerr << "snprintf(object_format, index) failed" << std::endl;
         return false;
       }
       object = real_object;
@@ -129,9 +129,15 @@ bool Runner::RunRead() {
 
     if (!status.ok()) {
       std::cerr << "Download Failure!" << std::endl;
-      std::cerr << "Peer: " << context.peer() << std::endl;
+      std::cerr << "Peer:   " << context.peer() << std::endl;
+      std::cerr << "Start:  " << run_start << std::endl;
+      std::cerr << "End:    " << run_end << std::endl;
+      std::cerr << "Elased: " << (run_end - run_start) << std::endl;
+      std::cerr << "Bucket: " << parameter_.bucket.c_str() << std::endl;
+      std::cerr << "Object: " << object.c_str() << std::endl;
+      std::cerr << "Bytes:  " << total_bytes << std::endl;
       std::cerr << "Status: " << std::endl;
-      std::cerr << "- Code: " << status.error_code() << std::endl;
+      std::cerr << "- Code:    " << status.error_code() << std::endl;
       std::cerr << "- Message: " << status.error_message() << std::endl;
       std::cerr << "- Details: " << status.error_details() << std::endl;
     }
@@ -144,17 +150,12 @@ bool Runner::RunRead() {
         context.peer(), parameter_.bucket, object, status, total_bytes,
         run_start, run_end - run_start, std::move(chunks));
 
-    /*
-    bool used_directpath = context.peer().rfind("ipv6:[2001:") == 0;
-    if (used_directpath ^ absl::GetFlag(FLAGS_directpath)) {
-      std::cerr << "DirectPath flag is " << absl::GetFlag(FLAGS_directpath)
-           << ", but using directpath is " << used_directpath << std::endl;
-      std::cerr << "Peer was " << context.peer() << endl;
-      return;
-    }
-    */
-
-    if (keep_going == false) {
+    if (parameter_.keep_trying) {
+      // let's try the same if keep_trying is set and it failed
+      if (!status.ok()) {
+        run -= 1;
+      }
+    } else if (keep_going == false) {
       return false;
     }
   }
@@ -274,9 +275,15 @@ bool Runner::RunWrite() {
 
     if (!status.ok()) {
       std::cerr << "Upload Failure!" << std::endl;
-      std::cerr << "Peer: " << context.peer() << std::endl;
+      std::cerr << "Peer:   " << context.peer() << std::endl;
+      std::cerr << "Start:  " << run_start << std::endl;
+      std::cerr << "End:    " << run_end << std::endl;
+      std::cerr << "Elased: " << (run_end - run_start) << std::endl;
+      std::cerr << "Bucket: " << parameter_.bucket.c_str() << std::endl;
+      std::cerr << "Object: " << object.c_str() << std::endl;
+      std::cerr << "Bytes:  " << total_bytes << std::endl;
       std::cerr << "Status: " << std::endl;
-      std::cerr << "- Code: " << status.error_code() << std::endl;
+      std::cerr << "- Code:    " << status.error_code() << std::endl;
       std::cerr << "- Message: " << status.error_message() << std::endl;
       std::cerr << "- Details: " << status.error_details() << std::endl;
     }
@@ -289,7 +296,12 @@ bool Runner::RunWrite() {
         context.peer(), parameter_.bucket, object, status, total_bytes,
         run_start, run_end - run_start, std::move(chunks));
 
-    if (keep_going == false) {
+    if (parameter_.keep_trying) {
+      // let's try the same if keep_trying is set and it failed
+      if (!status.ok()) {
+        run -= 1;
+      }
+    } else if (keep_going == false) {
       return false;
     }
   }
