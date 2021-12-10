@@ -75,7 +75,7 @@ bool Runner::RunRead() {
       int cx = snprintf(real_object, sizeof(real_object),
                         parameter_.object_format.c_str(), index);
       if (cx < 0) {
-        std::cerr << "snprintf(object, index) failed" << std::endl;
+        std::cerr << "snprintf(object_format, index) failed" << std::endl;
         return false;
       }
       object = real_object;
@@ -150,17 +150,12 @@ bool Runner::RunRead() {
         context.peer(), parameter_.bucket, object, status, total_bytes,
         run_start, run_end - run_start, std::move(chunks));
 
-    /*
-    bool used_directpath = context.peer().rfind("ipv6:[2001:") == 0;
-    if (used_directpath ^ absl::GetFlag(FLAGS_directpath)) {
-      std::cerr << "DirectPath flag is " << absl::GetFlag(FLAGS_directpath)
-           << ", but using directpath is " << used_directpath << std::endl;
-      std::cerr << "Peer was " << context.peer() << endl;
-      return;
-    }
-    */
-
-    if (keep_going == false) {
+    if (parameter_.keep_trying) {
+      // let's try the same if keep_trying is set and it failed
+      if (!status.ok()) {
+        run -= 1;
+      }
+    } else if (keep_going == false) {
       return false;
     }
   }
@@ -301,7 +296,12 @@ bool Runner::RunWrite() {
         context.peer(), parameter_.bucket, object, status, total_bytes,
         run_start, run_end - run_start, std::move(chunks));
 
-    if (keep_going == false) {
+    if (parameter_.keep_trying) {
+      // let's try the same if keep_trying is set and it failed
+      if (!status.ok()) {
+        run -= 1;
+      }
+    } else if (keep_going == false) {
       return false;
     }
   }

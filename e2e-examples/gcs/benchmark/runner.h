@@ -29,6 +29,7 @@ class Runner {
     bool verbose;
     bool check_crc32c;
     bool resumable_write;
+    bool keep_trying;
     std::shared_ptr<StorageStubProvider> storage_stub_provider;
   };
 
