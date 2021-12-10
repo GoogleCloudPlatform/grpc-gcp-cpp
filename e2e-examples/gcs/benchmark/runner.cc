@@ -129,9 +129,15 @@ bool Runner::RunRead() {
 
     if (!status.ok()) {
       std::cerr << "Download Failure!" << std::endl;
-      std::cerr << "Peer: " << context.peer() << std::endl;
+      std::cerr << "Peer:   " << context.peer() << std::endl;
+      std::cerr << "Start:  " << run_start << std::endl;
+      std::cerr << "End:    " << run_end << std::endl;
+      std::cerr << "Elased: " << (run_end - run_start) << std::endl;
+      std::cerr << "Bucket: " << parameter_.bucket.c_str() << std::endl;
+      std::cerr << "Object: " << object.c_str() << std::endl;
+      std::cerr << "Bytes:  " << total_bytes << std::endl;
       std::cerr << "Status: " << std::endl;
-      std::cerr << "- Code: " << status.error_code() << std::endl;
+      std::cerr << "- Code:    " << status.error_code() << std::endl;
       std::cerr << "- Message: " << status.error_message() << std::endl;
       std::cerr << "- Details: " << status.error_details() << std::endl;
     }
@@ -274,9 +280,15 @@ bool Runner::RunWrite() {
 
     if (!status.ok()) {
       std::cerr << "Upload Failure!" << std::endl;
-      std::cerr << "Peer: " << context.peer() << std::endl;
+      std::cerr << "Peer:   " << context.peer() << std::endl;
+      std::cerr << "Start:  " << run_start << std::endl;
+      std::cerr << "End:    " << run_end << std::endl;
+      std::cerr << "Elased: " << (run_end - run_start) << std::endl;
+      std::cerr << "Bucket: " << parameter_.bucket.c_str() << std::endl;
+      std::cerr << "Object: " << object.c_str() << std::endl;
+      std::cerr << "Bytes:  " << total_bytes << std::endl;
       std::cerr << "Status: " << std::endl;
-      std::cerr << "- Code: " << status.error_code() << std::endl;
+      std::cerr << "- Code:    " << status.error_code() << std::endl;
       std::cerr << "- Message: " << status.error_message() << std::endl;
       std::cerr << "- Details: " << status.error_details() << std::endl;
     }
