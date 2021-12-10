@@ -24,6 +24,7 @@ class Runner {
     int64_t read_offset;
     int64_t read_limit;
     int64_t write_size;
+    absl::Duration timeout;
     int runs;
     bool verbose;
     bool check_crc32c;
