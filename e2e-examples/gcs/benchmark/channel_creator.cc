@@ -13,7 +13,8 @@ std::shared_ptr<grpc::Channel> CreateGrpcChannel(absl::string_view host,
                                                  bool use_rr, bool use_td) {
   std::string target = std::string(host);
   if (use_td) {
-    target = "google-c2p:///" + target;
+    // TODO(veblush): Remove experimental suffix once this code is proven stable.
+    target = "google-c2p-experimental:///" + target;
   }
   if (access_token.empty()) {
     std::shared_ptr<grpc::ChannelCredentials> channel_cred;
