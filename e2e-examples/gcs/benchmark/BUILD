@@ -93,6 +93,7 @@ cc_binary(
         "@com_google_googleapis//google/storage/v2:storage_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",
         "@com_github_grpc_grpc//src/proto/grpc/health/v1:health_proto",
+        "@com_github_grpc_grpc//test/core/util:stack_tracer",
 
         "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/flags:parse",

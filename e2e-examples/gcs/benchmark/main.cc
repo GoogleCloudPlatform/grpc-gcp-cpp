@@ -17,6 +17,9 @@
 #include "absl/flags/parse.h"
 #include "absl/strings/str_format.h"
 #include "absl/time/time.h"
+
+#include "test/core/util/stack_tracer.h"
+
 #include "channel_creator.h"
 #include "channel_policy.h"
 #include "print_result.h"
@@ -76,6 +79,7 @@ std::shared_ptr<grpc::Channel> CreateBenchmarkGrpcChannel() {
 
 int main(int argc, char** argv) {
   absl::ParseCommandLine(argc, argv);
+  grpc_core::testing::InitializeStackTracer(argv[0]);
 
   const int ctest = absl::GetFlag(FLAGS_ctest);
   if (ctest > 0) {
