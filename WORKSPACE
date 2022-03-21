@@ -4,25 +4,23 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "com_google_absl",
-    sha256 = "35f22ef5cb286f09954b7cc4c85b5a3f6221c9d4df6b8c4a1e9d399555b366ee",
-    strip_prefix = "abseil-cpp-997aaf3a28308eba1b9156aa35ab7bca9688e9f6",
-    url = "https://github.com/abseil/abseil-cpp/archive/997aaf3a28308eba1b9156aa35ab7bca9688e9f6.tar.gz",
+    sha256 = "dcf71b9cba8dc0ca9940c4b316a0c796be8fab42b070bb6b7cab62b48f0e66c4",
+    strip_prefix = "abseil-cpp-20211102.0",
+    url = "https://github.com/abseil/abseil-cpp/archive/refs/tags/20211102.0.tar.gz",
 )
 
 http_archive(
     name = "com_github_grpc_grpc",
-    sha256 = "b74ce7d26fe187970d1d8e2c06a5d3391122f7bc1fdce569aff5e435fb8fe780",
-    strip_prefix = "grpc-1.43.2",
-    url = "https://github.com/grpc/grpc/archive/v1.43.2.tar.gz",
+    sha256 = "ec19657a677d49af59aa806ec299c070c882986c9fcc022b1c22c2a3caf01bcd",
+    strip_prefix = "grpc-1.45.0",
+    url = "https://github.com/grpc/grpc/archive/refs/tags/v1.45.0.tar.gz",
 )
 
 http_archive(
     name = "com_google_googleapis",
     sha256 = "09baebb48905d27f047625e2ed05331ec43562afffe9e90f103e36c0a7a6e40d",
     strip_prefix = "googleapis-cdc9747a73f6af2393ab51490fc3a3c11ff3620f",
-    urls = [
-        "https://github.com/googleapis/googleapis/archive/cdc9747a73f6af2393ab51490fc3a3c11ff3620f.tar.gz",
-    ],
+    url = "https://github.com/googleapis/googleapis/archive/cdc9747a73f6af2393ab51490fc3a3c11ff3620f.tar.gz",
 )
 
 http_archive(
