@@ -21,6 +21,7 @@ class Runner {
     std::string object_format;
     int object_start;
     int object_stop;
+    int64_t chunk_size;
     int64_t read_offset;
     int64_t read_limit;
     int64_t write_size;
@@ -41,6 +42,7 @@ class Runner {
 
  private:
   bool RunRead();
+  bool RunRandomRead();
   bool RunWrite();
 
  private:
