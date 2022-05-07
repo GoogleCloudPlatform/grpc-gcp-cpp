@@ -1,7 +1,7 @@
 cc_library(
     name = "channel_creator",
     hdrs = [
-        "channel_creator.h", 
+        "channel_creator.h",
     ],
     srcs = [
         "channel_creator.cc",
@@ -17,7 +17,7 @@ cc_library(
 cc_library(
     name = "channel_policy",
     hdrs = [
-        "channel_policy.h", 
+        "channel_policy.h",
     ],
     srcs = [
         "channel_policy.cc",
@@ -33,7 +33,7 @@ cc_library(
 cc_library(
     name = "common",
     hdrs = [
-        "common.h", 
+        "common.h",
     ],
     srcs = [
         "common.cc",
@@ -41,9 +41,22 @@ cc_library(
 )
 
 cc_library(
+    name = "object_resolver",
+    hdrs = [
+        "object_resolver.h",
+    ],
+    srcs = [
+        "object_resolver.cc",
+    ],
+    deps = [
+        "@com_google_absl//absl/strings",
+    ],
+)
+
+cc_library(
     name = "runner_watcher",
     hdrs = [
-        "runner_watcher.h", 
+        "runner_watcher.h",
     ],
     srcs = [
         "runner_watcher.cc",
@@ -60,7 +73,7 @@ cc_library(
 cc_library(
     name = "runner",
     hdrs = [
-        "runner.h", 
+        "runner.h",
     ],
     srcs = [
         "runner.cc",
@@ -68,6 +81,7 @@ cc_library(
     deps = [
         "common",
         "channel_policy",
+        "object_resolver",
         "runner_watcher",
         "@com_google_googleapis//google/storage/v2:storage_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",
@@ -80,14 +94,14 @@ cc_library(
 cc_binary(
     name = "benchmark",
     srcs = [
-        "ctest.cc", 
-        "main.cc", 
+        "ctest.cc",
+        "main.cc",
         "print_result.cc",
         "print_result.h",
     ],
     deps = [
         "channel_creator",
-        "channel_policy", 
+        "channel_policy",
         "runner",
         "runner_watcher",
         "@com_google_googleapis//google/storage/v2:storage_cc_grpc",

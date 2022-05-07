@@ -47,7 +47,10 @@ void ApplyCallTimeout(grpc::ClientContext* context, absl::Duration timeout) {
 
 Runner::Runner(Runner::Parameter parameter,
                std::shared_ptr<RunnerWatcher> watcher)
-    : parameter_(parameter), watcher_(watcher) {}
+    : parameter_(parameter),
+      objectResolver_(parameter_.object, parameter_.object_format,
+                      parameter_.object_start, parameter_.object_stop),
+      watcher_(watcher) {}
 
 void Runner::Run() {
   switch (parameter_.operation_type) {
@@ -66,26 +69,13 @@ void Runner::Run() {
   }
 }
 
-static std::string GetObjectName(const std::string& format, int thread_id,
-                                 int object_id) {
-  return absl::StrReplaceAll(format, {{"{t}", absl::StrCat(thread_id)},
-                                      {"{o}", absl::StrCat(object_id)}});
-}
-
 bool Runner::RunRead() {
   for (int run = 0; run < parameter_.runs; run++) {
     auto storage = parameter_.storage_stub_provider->GetStorageStub();
 
-    std::string object = parameter_.object;
-    if (!parameter_.object_format.empty()) {
-      int oid = run;
-      if (parameter_.object_stop > 0) {
-        oid = (run % (parameter_.object_stop - parameter_.object_start)) +
-              parameter_.object_start;
-      }
-      object = GetObjectName(parameter_.object_format, parameter_.id, oid);
-    }
-
+    std::string object = objectResolver_.Resolve(parameter_.id, run);
+    std::cout << object.c_str() << std::endl;
+    continue;
     ReadObjectRequest request;
     request.set_bucket(ToV2BucketName(parameter_.bucket));
     request.set_object(object);
@@ -190,13 +180,7 @@ bool Runner::RunRandomRead() {
   }
 
   auto storage = parameter_.storage_stub_provider->GetStorageStub();
-
-  std::string object = parameter_.object;
-  if (!parameter_.object_format.empty()) {
-    object = GetObjectName(parameter_.object_format, parameter_.id,
-                           parameter_.object_start);
-  }
-
+  std::string object = objectResolver_.Resolve(parameter_.id, 0);
   absl::BitGen gen;
   for (int run = 0; run < parameter_.runs; run++) {
     int64_t offset = absl::Uniform(gen, 0, chunks) * parameter_.chunk_size;
@@ -303,11 +287,7 @@ bool Runner::RunWrite() {
   for (int run = 0; run < parameter_.runs; run++) {
     auto storage = parameter_.storage_stub_provider->GetStorageStub();
 
-    std::string object = parameter_.object;
-    if (!parameter_.object_format.empty()) {
-      object = GetObjectName(parameter_.object_format, parameter_.id, run);
-    }
-
+    std::string object = objectResolver_.Resolve(parameter_.id, run);
     absl::Time run_start = absl::Now();
     uint32_t object_crc32c = 0;
 

@@ -9,6 +9,7 @@
 #include "absl/types/optional.h"
 
 #include "channel_policy.h"
+#include "object_resolver.h"
 #include "runner_watcher.h"
 
 class Runner {
@@ -47,6 +48,7 @@ class Runner {
 
  private:
   Parameter parameter_;
+  ObjectResolver objectResolver_;
   std::shared_ptr<RunnerWatcher> watcher_;
   bool return_code_;
 };
