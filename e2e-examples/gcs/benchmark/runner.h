@@ -9,6 +9,7 @@
 #include "absl/types/optional.h"
 
 #include "channel_policy.h"
+#include "object_resolver.h"
 #include "runner_watcher.h"
 
 class Runner {
@@ -21,6 +22,7 @@ class Runner {
     std::string object_format;
     int object_start;
     int object_stop;
+    int64_t chunk_size;
     int64_t read_offset;
     int64_t read_limit;
     int64_t write_size;
@@ -41,10 +43,12 @@ class Runner {
 
  private:
   bool RunRead();
+  bool RunRandomRead();
   bool RunWrite();
 
  private:
   Parameter parameter_;
+  ObjectResolver objectResolver_;
   std::shared_ptr<RunnerWatcher> watcher_;
   bool return_code_;
 };

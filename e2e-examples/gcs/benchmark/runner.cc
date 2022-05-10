@@ -1,7 +1,9 @@
 #include "runner.h"
 
+#include "absl/random/random.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/str_replace.h"
 #include "absl/strings/string_view.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
@@ -45,12 +47,18 @@ void ApplyCallTimeout(grpc::ClientContext* context, absl::Duration timeout) {
 
 Runner::Runner(Runner::Parameter parameter,
                std::shared_ptr<RunnerWatcher> watcher)
-    : parameter_(parameter), watcher_(watcher) {}
+    : parameter_(parameter),
+      objectResolver_(parameter_.object, parameter_.object_format,
+                      parameter_.object_start, parameter_.object_stop),
+      watcher_(watcher) {}
 
 void Runner::Run() {
   switch (parameter_.operation_type) {
     case OperationType::Read:
       return_code_ = RunRead();
+      break;
+    case OperationType::RandomRead:
+      return_code_ = RunRandomRead();
       break;
     case OperationType::Write:
       return_code_ = RunWrite();
@@ -65,24 +73,9 @@ bool Runner::RunRead() {
   for (int run = 0; run < parameter_.runs; run++) {
     auto storage = parameter_.storage_stub_provider->GetStorageStub();
 
-    std::string object;
-    if (parameter_.object_stop > 0) {
-      int offset = run + ((parameter_.id - 1) * parameter_.runs);
-      int index =
-          (offset % (parameter_.object_stop - parameter_.object_start)) +
-          parameter_.object_start;
-      char real_object[256];
-      int cx = snprintf(real_object, sizeof(real_object),
-                        parameter_.object_format.c_str(), index);
-      if (cx < 0) {
-        std::cerr << "snprintf(object_format, index) failed" << std::endl;
-        return false;
-      }
-      object = real_object;
-    } else {
-      object = parameter_.object;
-    }
-
+    std::string object = objectResolver_.Resolve(parameter_.id, run);
+    std::cout << object.c_str() << std::endl;
+    continue;
     ReadObjectRequest request;
     request.set_bucket(ToV2BucketName(parameter_.bucket));
     request.set_object(object);
@@ -92,6 +85,110 @@ bool Runner::RunRead() {
     if (parameter_.read_limit >= 0) {
       request.set_read_limit(parameter_.read_limit);
     }
+
+    absl::Time run_start = absl::Now();
+    grpc::ClientContext context;
+    ApplyCallTimeout(&context, parameter_.timeout);
+    std::unique_ptr<grpc::ClientReader<ReadObjectResponse>> reader =
+        storage.stub->ReadObject(&context, request);
+
+    int64_t total_bytes = 0;
+    std::vector<RunnerWatcher::Chunk> chunks;
+    chunks.reserve(256);
+
+    ReadObjectResponse response;
+    while (reader->Read(&response)) {
+      const auto& content = response.checksummed_data().content();
+      int64_t content_size = content.size();
+
+      if (parameter_.check_crc32c) {
+        uint32_t content_crc = response.checksummed_data().crc32c();
+        uint32_t calculated_crc =
+            crc32c_value((const uint8_t*)content.c_str(), content_size);
+        if (content_crc != calculated_crc) {
+          std::cerr << "CRC32 is not identical. " << content_crc << " vs "
+                    << calculated_crc << std::endl;
+          break;
+        }
+      }
+
+      RunnerWatcher::Chunk chunk = {absl::Now(), content_size};
+      chunks.push_back(chunk);
+      total_bytes += content_size;
+    }
+
+    auto status = reader->Finish();
+    absl::Time run_end = absl::Now();
+
+    if (!status.ok()) {
+      std::cerr << "Download Failure!" << std::endl;
+      std::cerr << "Peer:   " << context.peer() << std::endl;
+      std::cerr << "Start:  " << run_start << std::endl;
+      std::cerr << "End:    " << run_end << std::endl;
+      std::cerr << "Elased: " << (run_end - run_start) << std::endl;
+      std::cerr << "Bucket: " << parameter_.bucket.c_str() << std::endl;
+      std::cerr << "Object: " << object.c_str() << std::endl;
+      std::cerr << "Bytes:  " << total_bytes << std::endl;
+      std::cerr << "Status: " << std::endl;
+      std::cerr << "- Code:    " << status.error_code() << std::endl;
+      std::cerr << "- Message: " << status.error_message() << std::endl;
+      std::cerr << "- Details: " << status.error_details() << std::endl;
+    }
+
+    auto keep_going = parameter_.storage_stub_provider->ReportResult(
+        storage.handle, status, context, run_end - run_start, total_bytes);
+
+    watcher_->NotifyCompleted(
+        OperationType::Read, parameter_.id, GetChannelId(storage.handle),
+        context.peer(), parameter_.bucket, object, status, total_bytes,
+        run_start, run_end - run_start, std::move(chunks));
+
+    if (parameter_.keep_trying) {
+      // let's try the same if keep_trying is set and it failed
+      if (!status.ok()) {
+        run -= 1;
+      }
+    } else if (keep_going == false) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+bool Runner::RunRandomRead() {
+  if (parameter_.read_limit <= 0) {
+    std::cerr << "read_limit should be greater than 0." << std::endl;
+    return false;
+  }
+  int64_t read_span =
+      parameter_.read_limit - std::max(int64_t(0), parameter_.read_offset);
+  if (read_span <= 0) {
+    std::cerr << "read_limit should be greater than read_offset." << std::endl;
+    return false;
+  }
+  if (parameter_.chunk_size == 0) {
+    std::cerr << "chunk_size should be greater than 0." << std::endl;
+    return false;
+  }
+  int64_t chunks = read_span / parameter_.chunk_size;
+  if (chunks <= 0) {
+    std::cerr
+        << "read_limit should be greater than or equal to readable window."
+        << std::endl;
+    return false;
+  }
+
+  auto storage = parameter_.storage_stub_provider->GetStorageStub();
+  std::string object = objectResolver_.Resolve(parameter_.id, 0);
+  absl::BitGen gen;
+  for (int run = 0; run < parameter_.runs; run++) {
+    int64_t offset = absl::Uniform(gen, 0, chunks) * parameter_.chunk_size;
+    ReadObjectRequest request;
+    request.set_bucket(ToV2BucketName(parameter_.bucket));
+    request.set_object(object);
+    request.set_read_offset(offset);
+    request.set_read_limit(parameter_.chunk_size);
 
     absl::Time run_start = absl::Now();
     grpc::ClientContext context;
@@ -174,27 +271,23 @@ static std::vector<char> GetRandomData(size_t size) {
 }
 
 bool Runner::RunWrite() {
-  const int64_t max_chunk_size = 2097152;
+  const int64_t max_chunk_size =
+      (parameter_.chunk_size < 0) ? 2097152 : parameter_.chunk_size;
   const std::vector<char> content = GetRandomData(max_chunk_size);
+
+  if (parameter_.object_stop > 0) {
+    std::cerr << "write doesn't support object_stop" << std::endl;
+    return false;
+  }
+  if (parameter_.write_size <= 0) {
+    std::cerr << "write_size should be greater than 0." << std::endl;
+    return false;
+  }
 
   for (int run = 0; run < parameter_.runs; run++) {
     auto storage = parameter_.storage_stub_provider->GetStorageStub();
 
-    std::string object;
-    if (parameter_.object_stop > 0) {
-      std::cerr << "write doesn't support object_stop" << std::endl;
-      return false;
-    } else {
-      char real_object[256];
-      int cx = snprintf(real_object, sizeof(real_object), "%s_%d_%d",
-                        parameter_.object.c_str(), parameter_.id, run);
-      if (cx < 0) {
-        std::cerr << "snprintf(object, index) failed" << std::endl;
-        return false;
-      }
-      object = real_object;
-    }
-
+    std::string object = objectResolver_.Resolve(parameter_.id, run);
     absl::Time run_start = absl::Now();
     uint32_t object_crc32c = 0;
 

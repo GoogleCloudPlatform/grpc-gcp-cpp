@@ -17,13 +17,11 @@
 #include "absl/flags/parse.h"
 #include "absl/strings/str_format.h"
 #include "absl/time/time.h"
-
-#include "test/core/util/stack_tracer.h"
-
 #include "channel_creator.h"
 #include "channel_policy.h"
 #include "print_result.h"
 #include "runner.h"
+#include "test/core/util/stack_tracer.h"
 
 using std::cerr;
 using std::cout;
@@ -35,21 +33,25 @@ ABSL_FLAG(string, network, "default", "Network path (default, cfe, dp)");
 ABSL_FLAG(bool, rr, false,
           "Use round_robin grpclb policy (otherwise pick_first)");
 ABSL_FLAG(bool, td, false, "Use Traffic Director");
-ABSL_FLAG(string, operation, "read", "Operation type (read, write)");
+ABSL_FLAG(string, operation, "read", "Operation type (read, random-read, write)");
 ABSL_FLAG(string, host, "dns:///storage.googleapis.com:443", "Host to reach");
 ABSL_FLAG(string, bucket, "gcs-grpc-team-veblush1",
           "Bucket to fetch object from");
 ABSL_FLAG(string, object, "1G.txt", "Object to download");
-ABSL_FLAG(string, object_format, "", "Format string to resolve the object");
+ABSL_FLAG(string, object_format, "",
+          "Format string to resolve the object (format: {t}=thread-id, "
+          "{o}=object-id)");
 ABSL_FLAG(
     int, object_start, 0,
     "An integer number specifying at which position to start. Default is 0");
 ABSL_FLAG(int, object_stop, 0,
           "An integer number specifying at which position to end.");
+ABSL_FLAG(int64_t, chunk_size, -1, "Chunk size for random-read and write");
 ABSL_FLAG(int64_t, read_offset, -1, "Read offset for read");
 ABSL_FLAG(int64_t, read_limit, -1, "Read limit for read");
 ABSL_FLAG(int64_t, write_size, 0, "Write size");
-ABSL_FLAG(absl::Duration, timeout, absl::InfiniteDuration(), "Timeout for the call. (Default: none)");
+ABSL_FLAG(absl::Duration, timeout, absl::InfiniteDuration(),
+          "Timeout for the call. (Default: none)");
 ABSL_FLAG(int, runs, 1, "Number of times to run the download");
 ABSL_FLAG(bool, verbose, false, "Show debug output and progress updates");
 ABSL_FLAG(bool, crc32c, false, "Check CRC32C check for received content");
@@ -90,6 +92,8 @@ int main(int argc, char** argv) {
   const std::string operation = absl::GetFlag(FLAGS_operation);
   if (operation == "read") {
     operation_type = OperationType::Read;
+  } else if (operation == "random-read") {
+    operation_type = OperationType::RandomRead;
   } else if (operation == "write") {
     operation_type = OperationType::Write;
   } else {
@@ -145,6 +149,7 @@ int main(int argc, char** argv) {
     param.object_format = absl::GetFlag(FLAGS_object_format);
     param.object_start = absl::GetFlag(FLAGS_object_start);
     param.object_stop = absl::GetFlag(FLAGS_object_stop);
+    param.chunk_size = absl::GetFlag(FLAGS_chunk_size);
     param.read_offset = absl::GetFlag(FLAGS_read_offset);
     param.read_limit = absl::GetFlag(FLAGS_read_limit);
     param.write_size = absl::GetFlag(FLAGS_write_size);
