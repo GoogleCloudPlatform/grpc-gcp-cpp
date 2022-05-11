@@ -13,8 +13,8 @@
 #include "absl/time/time.h"
 
 constexpr double kMB = 1024.0 * 1024.0;
-constexpr double kSevenPercentiles[] = {0.001, 0.01, 0.25, 0.50,
-                                        0.75,  0.99, 0.999};
+constexpr double kSevenPercentiles[] = {0.001, 0.01, 0.10, 0.50,
+                                        0.90,  0.99, 0.999};
 
 std::string ShortFormatTime(absl::Time time) {
   return absl::FormatTime("%Y-%m-%dT%H:%M:%S", time, absl::LocalTimeZone());
@@ -166,16 +166,16 @@ void WriteReport(const RunnerWatcher& watcher, std::string report_file,
                                   "Failure",      "ChannelCount",
                                   "PeerCount",    "MaxChannelPerPeer",
                                   "File-P00.1-T", "File-P01-T",
-                                  "File-P25-T",   "File-P50-T",
-                                  "File-P75-T",   "File-P99-T",
+                                  "File-P10-T",   "File-P50-T",
+                                  "File-P90-T",   "File-P99-T",
                                   "File-P99.9-T", "Peer-P00.1-T",
                                   "Peer-P00.1-C", "Peer-P00.1-IP",
                                   "Peer-P01-T",   "Peer-P01-C",
-                                  "Peer-P01-IP",  "Peer-P25-T",
-                                  "Peer-P25-C",   "Peer-P25-IP",
+                                  "Peer-P01-IP",  "Peer-P10-T",
+                                  "Peer-P10-C",   "Peer-P10-IP",
                                   "Peer-P50-T",   "Peer-P50-C",
-                                  "Peer-P50-IP",  "Peer-P75-T",
-                                  "Peer-P75-C",   "Peer-P75-IP",
+                                  "Peer-P50-IP",  "Peer-P90-T",
+                                  "Peer-P90-C",   "Peer-P90-IP",
                                   "Peer-P99-T",   "Peer-P99-C",
                                   "Peer-P99-IP",  "Peer-P99.9-T",
                                   "Peer-P99.9-C", "Peer-P99.9-IP"};
