@@ -13,7 +13,8 @@
 #include "absl/time/time.h"
 
 constexpr double kMB = 1024.0 * 1024.0;
-constexpr double kFivePercentiles[] = {0.01, 0.25, 0.50, 0.75, 0.99};
+constexpr double kSevenPercentiles[] = {0.001, 0.01, 0.25, 0.50,
+                                        0.75,  0.99, 0.999};
 
 std::string ShortFormatTime(absl::Time time) {
   return absl::FormatTime("%Y-%m-%dT%H:%M:%S", time, absl::LocalTimeZone());
@@ -31,8 +32,9 @@ std::vector<size_t> GetSortedOperationIndex(
       indexes.push_back(i);
     }
   }
+  // Sorted by throughput in an ascending order
   std::sort(indexes.begin(), indexes.end(), [&operations](size_t a, size_t b) {
-    return operations[a].elapsed_time < operations[b].elapsed_time;
+    return operations[a].elapsed_time > operations[b].elapsed_time;
   });
   return indexes;
 }
@@ -67,9 +69,10 @@ std::vector<PeerValue> GetSortedPeers(
     peers.push_back(std::move(i.second));
     peers.back().peer = i.first;
   }
+  // Sorted by throughput in an ascending order
   std::sort(peers.begin(), peers.end(),
             [](const PeerValue& a, const PeerValue& b) {
-              return a.throughput > b.throughput;
+              return a.throughput < b.throughput;
             });
   return peers;
 }
@@ -90,7 +93,7 @@ void PrintResult(const RunnerWatcher& watcher) {
   }
   std::cout
       << absl::StrFormat(
-             "Elapsed: %.1fs Count: %d Bytes: %.1fMB Throughput: %.1fMB/s",
+             "Elapsed: %.1fs Count: %d Bytes: %.1fMB Throughput: %.2fMB/s",
              elapsed_time, operations.size(), total_bytes / kMB,
              total_bytes / kMB / elapsed_time)
       << std::endl;
@@ -99,39 +102,40 @@ void PrintResult(const RunnerWatcher& watcher) {
 
   std::cout << std::endl << "Operation percentiles" << std::endl;
   std::vector<size_t> indexes = GetSortedOperationIndex(operations);
-  for (auto p : kFivePercentiles) {
+  for (auto p : kSevenPercentiles) {
     size_t index = indexes[size_t(p * indexes.size())];
     auto op = operations[index];
     auto sec = absl::ToDoubleSeconds(op.elapsed_time);
-    std::cout
-        << absl::StrFormat(
-               " [p%02d] Throughput: %.1fMB/s Time: %.1fs, Chunks: %d Peer: %s",
-               int(p * 100), op.bytes / sec / kMB, sec, op.chunks.size(),
-               op.peer)
-        << std::endl;
+    std::cout << absl::StrFormat(
+                     " [p%04.1f] Throughput: %.2fMB/s Time: %.1fs, Chunks: %d "
+                     "Peer: %s",
+                     p * 100, op.bytes / sec / kMB, sec, op.chunks.size(),
+                     op.peer)
+              << std::endl;
   }
 
   // Percentile for each peer
 
   std::cout << std::endl << "Peer percentiles" << std::endl;
   std::vector<PeerValue> peers = GetSortedPeers(operations);
-  for (auto p : kFivePercentiles) {
+  for (auto p : kSevenPercentiles) {
     const PeerValue& peer = peers[size_t(p * peers.size())];
     auto indexes = peer.indexes;
+    // Sorted by throughput in an ascending order
     std::sort(indexes.begin(), indexes.end(),
               [&operations](size_t a, size_t b) {
-                return operations[a].elapsed_time < operations[b].elapsed_time;
+                return operations[a].elapsed_time > operations[b].elapsed_time;
               });
     std::vector<double> subt;
-    for (auto p2 : kFivePercentiles) {
+    for (auto p2 : kSevenPercentiles) {
       size_t index = indexes[indexes.size() * p2];
       auto op = operations[index];
       subt.push_back(op.bytes / absl::ToDoubleSeconds(op.elapsed_time));
     }
     std::cout << absl::StrFormat(
-                     " [p%02d] Throughput: %.1fMB/s (p01:%.1f p50:%.1f "
+                     " [p%04.1f] Throughput: %.2fMB/s (p01:%.1f p50:%.1f "
                      "p99:%.1f) Count: %d Peer: %s",
-                     int(p * 100), peer.throughput / kMB, subt[0] / kMB,
+                     p * 100, peer.throughput / kMB, subt[0] / kMB,
                      subt[2] / kMB, subt[4] / kMB, peer.total_count, peer.peer)
               << std::endl;
   }
@@ -156,15 +160,25 @@ void WriteReport(const RunnerWatcher& watcher, std::string report_file,
 
   if (column_need) {
     //
-    std::vector<std::string> c = {
-        "Time",         "Tag",         "Elapsed",           "Bytes",
-        "Throughput",   "Success",     "Failure",
-        "ChannelCount", "PeerCount",   "MaxChannelPerPeer",
-        "File-P01-T",   "File-P25-T",  "File-P50-T",        "File-P75-T",
-        "File-P99-T",   "Peer-P01-T",  "Peer-P01-C",        "Peer-P01-IP",
-        "Peer-P25-T",   "Peer-P25-C",  "Peer-P25-IP",       "Peer-P50-T",
-        "Peer-P50-C",   "Peer-P50-IP", "Peer-P75-T",        "Peer-P75-C",
-        "Peer-P75-IP",  "Peer-P99-T",  "Peer-P99-C",        "Peer-P99-IP"};
+    std::vector<std::string> c = {"Time",         "Tag",
+                                  "Elapsed",      "Bytes",
+                                  "Throughput",   "Success",
+                                  "Failure",      "ChannelCount",
+                                  "PeerCount",    "MaxChannelPerPeer",
+                                  "File-P00.1-T", "File-P01-T",
+                                  "File-P25-T",   "File-P50-T",
+                                  "File-P75-T",   "File-P99-T",
+                                  "File-P99.9-T", "Peer-P00.1-T",
+                                  "Peer-P00.1-C", "Peer-P00.1-IP",
+                                  "Peer-P01-T",   "Peer-P01-C",
+                                  "Peer-P01-IP",  "Peer-P25-T",
+                                  "Peer-P25-C",   "Peer-P25-IP",
+                                  "Peer-P50-T",   "Peer-P50-C",
+                                  "Peer-P50-IP",  "Peer-P75-T",
+                                  "Peer-P75-C",   "Peer-P75-IP",
+                                  "Peer-P99-T",   "Peer-P99-C",
+                                  "Peer-P99-IP",  "Peer-P99.9-T",
+                                  "Peer-P99.9-C", "Peer-P99.9-IP"};
     f << absl::StrJoin(c, "\t") << std::endl;
   }
 
@@ -176,7 +190,8 @@ void WriteReport(const RunnerWatcher& watcher, std::string report_file,
   int32_t success_count = 0;
   int32_t failure_count = 0;
   std::unordered_set<int32_t> channel_id_set;
-  std::unordered_map<std::string, std::unordered_set<int32_t>> peer_channel_ids_map;
+  std::unordered_map<std::string, std::unordered_set<int32_t>>
+      peer_channel_ids_map;
   for (const auto& op : operations) {
     total_bytes += op.bytes;
     if (op.status.ok()) {
@@ -190,7 +205,8 @@ void WriteReport(const RunnerWatcher& watcher, std::string report_file,
 
   int32_t max_channel_per_peer = 0;
   for (const auto& i : peer_channel_ids_map) {
-    max_channel_per_peer = std::max(max_channel_per_peer, (int32_t)i.second.size());
+    max_channel_per_peer =
+        std::max(max_channel_per_peer, (int32_t)i.second.size());
   }
 
   std::vector<std::string> v;
@@ -207,7 +223,7 @@ void WriteReport(const RunnerWatcher& watcher, std::string report_file,
 
   // Percentile for each file
   std::vector<size_t> indexes = GetSortedOperationIndex(operations);
-  for (auto p : kFivePercentiles) {
+  for (auto p : kSevenPercentiles) {
     size_t index = indexes[size_t(p * indexes.size())];
     auto op = operations[index];
     auto sec = absl::ToDoubleSeconds(op.elapsed_time);
@@ -216,7 +232,7 @@ void WriteReport(const RunnerWatcher& watcher, std::string report_file,
 
   // Percentile for each peer
   std::vector<PeerValue> peers = GetSortedPeers(operations);
-  for (auto p : kFivePercentiles) {
+  for (auto p : kSevenPercentiles) {
     const PeerValue& peer = peers[size_t(p * peers.size())];
     auto sec = absl::ToDoubleSeconds(peer.total_time);
     v.push_back(std::to_string(peer.total_size / sec));
