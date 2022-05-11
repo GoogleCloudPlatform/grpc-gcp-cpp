@@ -75,7 +75,7 @@ std::vector<PeerValue> GetSortedPeers(
 }
 
 void PrintResult(const RunnerWatcher& watcher) {
-  auto operations = watcher.GetOperations();
+  auto operations = watcher.GetNonWarmupsOperations();
   if (operations.empty()) {
     return;
   }
@@ -144,7 +144,7 @@ inline bool FileExists(const std::string& name) {
 
 void WriteReport(const RunnerWatcher& watcher, std::string report_file,
                  std::string tag) {
-  auto operations = watcher.GetOperations();
+  auto operations = watcher.GetNonWarmupsOperations();
   if (operations.empty()) {
     return;
   }
@@ -247,7 +247,7 @@ void WriteData(const RunnerWatcher& watcher, std::string file,
                        absl::ToDoubleSeconds(watcher.GetDuration()))
     << std::endl;
   f << "\t\"operations\": [" << std::endl;
-  for (const auto& op : watcher.GetOperations()) {
+  for (const auto& op : watcher.GetNonWarmupsOperations()) {
     f << "\t\t{" << std::endl;
     f << absl::StrFormat("\t\t\t\"type\": %d,", int(op.type)) << std::endl;
     f << absl::StrFormat("\t\t\t\"runner_id\": %d,", op.runner_id) << std::endl;

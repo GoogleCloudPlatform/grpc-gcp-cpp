@@ -74,8 +74,6 @@ bool Runner::RunRead() {
     auto storage = parameter_.storage_stub_provider->GetStorageStub();
 
     std::string object = objectResolver_.Resolve(parameter_.id, run);
-    std::cout << object.c_str() << std::endl;
-    continue;
     ReadObjectRequest request;
     request.set_bucket(ToV2BucketName(parameter_.bucket));
     request.set_object(object);

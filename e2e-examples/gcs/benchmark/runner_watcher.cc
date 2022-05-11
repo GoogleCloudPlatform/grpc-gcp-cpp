@@ -1,6 +1,7 @@
 #include "runner_watcher.h"
 
-RunnerWatcher::RunnerWatcher(bool verbose) { verbose_ = verbose; }
+RunnerWatcher::RunnerWatcher(size_t warmups, bool verbose)
+    : warmups_(warmups), verbose_(verbose) {}
 
 absl::Time RunnerWatcher::GetStartTime() const { return start_time_; }
 
@@ -35,25 +36,31 @@ void RunnerWatcher::NotifyCompleted(OperationType operationType,
   op.chunks = std::move(chunks);
 
   // Insert records
-  int ord;
+  size_t ord;
   {
     absl::MutexLock l(&lock_);
-    operation_.push_back(std::move(op));
-    ord = operation_.size();
+    operations_.push_back(std::move(op));
+    ord = operations_.size();
   }
 
   if (verbose_) {
     auto sec = absl::ToDoubleSeconds(op.elapsed_time);
     printf(
-        "### %sCompleted: ord=%d peer=%s bucket=%s object=%s bytes=%lld "
-        "elapsed=%.2fs\n",
+        "### %sCompleted: ord=%ld peer=%s bucket=%s object=%s bytes=%lld "
+        "elapsed=%.2fs%s\n",
         ToOperationTypeString(operationType), ord, peer.c_str(), bucket.c_str(),
-        object.c_str(), (long long)bytes, sec);
+        object.c_str(), (long long)bytes, sec,
+        ord <= warmups_ ? " [WARM-UP]" : "");
     fflush(stdout);
   }
 }
 
-const std::vector<RunnerWatcher::Operation>& RunnerWatcher::GetOperations()
+std::vector<RunnerWatcher::Operation> RunnerWatcher::GetNonWarmupsOperations()
     const {
-  return operation_;
+  absl::MutexLock l(&lock_);
+  if (warmups_ >= operations_.size()) {
+    return {};
+  }
+  return std::vector<RunnerWatcher::Operation>(operations_.begin() + warmups_,
+                                               operations_.end());
 }
