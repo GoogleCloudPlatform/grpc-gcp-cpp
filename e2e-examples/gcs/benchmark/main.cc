@@ -33,7 +33,8 @@ ABSL_FLAG(string, network, "default", "Network path (default, cfe, dp)");
 ABSL_FLAG(bool, rr, false,
           "Use round_robin grpclb policy (otherwise pick_first)");
 ABSL_FLAG(bool, td, false, "Use Traffic Director");
-ABSL_FLAG(string, operation, "read", "Operation type (read, random-read, write)");
+ABSL_FLAG(string, operation, "read",
+          "Operation type (read, random-read, write)");
 ABSL_FLAG(string, host, "dns:///storage.googleapis.com:443", "Host to reach");
 ABSL_FLAG(string, bucket, "gcs-grpc-team-veblush1",
           "Bucket to fetch object from");
@@ -52,7 +53,9 @@ ABSL_FLAG(int64_t, read_limit, -1, "Read limit for read");
 ABSL_FLAG(int64_t, write_size, 0, "Write size");
 ABSL_FLAG(absl::Duration, timeout, absl::InfiniteDuration(),
           "Timeout for the call. (Default: none)");
-ABSL_FLAG(int, runs, 1, "Number of times to run the download");
+ABSL_FLAG(int, runs, 1, "The number of times to run the download");
+ABSL_FLAG(int, warmups, 0,
+          "The number of warm-up calls to be excluded for the report");
 ABSL_FLAG(bool, verbose, false, "Show debug output and progress updates");
 ABSL_FLAG(bool, crc32c, false, "Check CRC32C check for received content");
 ABSL_FLAG(bool, resumable, false, "Use resumable-write for writing");
@@ -79,7 +82,7 @@ std::shared_ptr<grpc::Channel> CreateBenchmarkGrpcChannel() {
                            absl::GetFlag(FLAGS_rr), absl::GetFlag(FLAGS_td));
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   absl::ParseCommandLine(argc, argv);
   grpc_core::testing::InitializeStackTracer(argv[0]);
 
@@ -136,7 +139,9 @@ int main(int argc, char** argv) {
         CreateSmartRoundRobinChannelPool(&CreateBenchmarkGrpcChannel, carg);
   }
 
-  auto watcher = std::make_shared<RunnerWatcher>(absl::GetFlag(FLAGS_verbose));
+  auto watcher = std::make_shared<RunnerWatcher>(
+      absl::GetFlag(FLAGS_warmups) * absl::GetFlag(FLAGS_threads),
+      absl::GetFlag(FLAGS_verbose));
 
   // Creates runners per thread.
   std::vector<Runner> runners;
@@ -179,11 +184,11 @@ int main(int argc, char** argv) {
   watcher->SetStartTime(run_start);
   std::vector<std::thread> runner_threads;
   for (int i = 0; i < absl::GetFlag(FLAGS_threads); i++) {
-    Runner& runner = runners[i];
+    Runner &runner = runners[i];
     runner_threads.emplace_back([&runner]() { runner.Run(); });
   }
   std::for_each(runner_threads.begin(), runner_threads.end(),
-                [](std::thread& t) { t.join(); });
+                [](std::thread &t) { t.join(); });
   absl::Time run_end = absl::Now();
   watcher->SetDuration(run_end - run_start);
 

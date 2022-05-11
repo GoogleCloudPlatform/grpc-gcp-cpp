@@ -1,14 +1,13 @@
 #ifndef GCS_BENCHMARK_RUNNER_WATCHER_H_
 #define GCS_BENCHMARK_RUNNER_WATCHER_H_
 
+#include <grpcpp/impl/codegen/status.h>
+
 #include <string>
 #include <vector>
 
-#include <grpcpp/impl/codegen/status.h>
-
 #include "absl/synchronization/mutex.h"
 #include "absl/time/time.h"
-
 #include "common.h"
 
 class RunnerWatcher {
@@ -33,7 +32,7 @@ class RunnerWatcher {
   };
 
  public:
-  RunnerWatcher(bool verbose = false);
+  RunnerWatcher(size_t warmups = 0, bool verbose = false);
 
   absl::Time GetStartTime() const;
 
@@ -49,14 +48,15 @@ class RunnerWatcher {
                        absl::Time time, absl::Duration elapsed_time,
                        std::vector<Chunk> chunks);
 
-  const std::vector<Operation>& GetOperations() const;
+  std::vector<Operation> GetNonWarmupsOperations() const;
 
  private:
+  size_t warmups_;
   bool verbose_;
   absl::Time start_time_;
   absl::Duration duration_;
-  std::vector<Operation> operation_;
-  absl::Mutex lock_;
+  std::vector<Operation> operations_;
+  mutable absl::Mutex lock_;
 };
 
 #endif  // GCS_BENCHMARK_RUNNER_WATCHER_H_
