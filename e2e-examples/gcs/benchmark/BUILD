@@ -31,12 +31,47 @@ cc_library(
 )
 
 cc_library(
-    name = "common",
+    name = "gcscpp_runner",
     hdrs = [
-        "common.h",
+        "gcscpp_runner.h",
     ],
     srcs = [
-        "common.cc",
+        "gcscpp_runner.cc",
+    ],
+    deps = [
+        "channel_policy",
+        "object_resolver",
+        "parameters",
+        "runner",
+        "runner_watcher",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/synchronization",
+        "//e2e-examples/gcs/crc32c",
+    ],
+)
+
+cc_library(
+    name = "grpc_runner",
+    hdrs = [
+        "grpc_runner.h",
+    ],
+    srcs = [
+        "ctest.cc",
+        "grpc_runner.cc",
+    ],
+    deps = [
+        "channel_creator",
+        "channel_policy",
+        "object_resolver",
+        "parameters",
+        "runner",
+        "runner_watcher",
+        "@com_google_googleapis//google/storage/v2:storage_cc_grpc",
+        "@com_github_grpc_grpc//:grpc++",
+        "@com_github_grpc_grpc//src/proto/grpc/health/v1:health_proto",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/synchronization",
+        "//e2e-examples/gcs/crc32c",
     ],
 )
 
@@ -54,6 +89,21 @@ cc_library(
 )
 
 cc_library(
+    name = "parameters",
+    hdrs = [
+        "parameters.h",
+    ],
+    srcs = [
+        "parameters.cc",
+    ],
+    deps = [
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+        "@com_google_absl//absl/strings:str_format",
+    ],    
+)
+
+cc_library(
     name = "runner_watcher",
     hdrs = [
         "runner_watcher.h",
@@ -62,7 +112,7 @@ cc_library(
         "runner_watcher.cc",
     ],
     deps = [
-        "common",
+        "parameters",
         "@com_google_googleapis//google/storage/v2:storage_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",
         "@com_google_absl//absl/strings",
@@ -79,7 +129,7 @@ cc_library(
         "runner.cc",
     ],
     deps = [
-        "common",
+        "parameters",
         "channel_policy",
         "object_resolver",
         "runner_watcher",
@@ -94,7 +144,6 @@ cc_library(
 cc_binary(
     name = "benchmark",
     srcs = [
-        "ctest.cc",
         "main.cc",
         "print_result.cc",
         "print_result.h",
@@ -102,13 +151,14 @@ cc_binary(
     deps = [
         "channel_creator",
         "channel_policy",
+        "parameters",
         "runner",
         "runner_watcher",
+        "gcscpp_runner",
+        "grpc_runner",
         "@com_google_googleapis//google/storage/v2:storage_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",
-        "@com_github_grpc_grpc//src/proto/grpc/health/v1:health_proto",
         "@com_github_grpc_grpc//test/core/util:stack_tracer",
-
         "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/flags:parse",
         "@com_google_absl//absl/strings:str_format",
