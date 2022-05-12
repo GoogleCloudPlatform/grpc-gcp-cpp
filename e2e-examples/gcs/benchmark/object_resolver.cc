@@ -16,7 +16,7 @@ std::string ObjectResolver::Resolve(int thread_id, int object_id) {
   }
 
   int oid = object_stop_ == 0
-                ? object_id
+                ? object_id + object_start_
                 : (object_id % (object_stop_ - object_start_)) + object_start_;
   return absl::StrReplaceAll(object_format_, {{"{t}", absl::StrCat(thread_id)},
                                               {"{o}", absl::StrCat(oid)}});
