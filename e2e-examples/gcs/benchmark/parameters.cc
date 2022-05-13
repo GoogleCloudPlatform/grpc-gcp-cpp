@@ -5,7 +5,7 @@
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
 
-ABSL_FLAG(std::string, client, "grpc", "Client (grpc, gcscpp)");
+ABSL_FLAG(std::string, client, "grpc", "Client (grpc, gcscpp-json, gcscpp-grpc)");
 ABSL_FLAG(std::string, operation, "read",
           "Operation type (read, random-read, write)");
 ABSL_FLAG(std::string, bucket, "gcs-grpc-team-veblush1",

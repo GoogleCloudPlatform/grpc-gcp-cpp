@@ -6,6 +6,8 @@
 #include "runner.h"
 #include "runner_watcher.h"
 
+#include "google/cloud/storage/client.h"
+
 #include <functional>
 #include <memory>
 
@@ -15,10 +17,10 @@ class GcscppRunner : public Runner {
   virtual bool Run() override;
 
  private:
-  bool DoOperation(int thread_id);
-  bool DoRead(int thread_id);
-  bool DoRandomRead(int thread_id);
-  bool DoWrite(int thread_id);
+  bool DoOperation(int thread_id, google::cloud::storage::Client storage_client);
+  bool DoRead(int thread_id, google::cloud::storage::Client storage_client);
+  bool DoRandomRead(int thread_id, google::cloud::storage::Client storage_client);
+  bool DoWrite(int thread_id, google::cloud::storage::Client storage_client);
 
  private:
   Parameters parameters_;

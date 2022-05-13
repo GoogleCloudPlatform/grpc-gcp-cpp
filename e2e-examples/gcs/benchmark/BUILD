@@ -39,14 +39,15 @@ cc_library(
         "gcscpp_runner.cc",
     ],
     deps = [
-        "channel_policy",
         "object_resolver",
         "parameters",
         "runner",
         "runner_watcher",
+        "//e2e-examples/gcs/crc32c",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
-        "//e2e-examples/gcs/crc32c",
+        "@com_github_googleapis_google_cloud_cpp//:storage",
+        "@com_github_googleapis_google_cloud_cpp//:experimental-storage-grpc",
     ],
 )
 

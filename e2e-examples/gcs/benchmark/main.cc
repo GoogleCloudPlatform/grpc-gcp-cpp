@@ -29,7 +29,8 @@ int main(int argc, char **argv) {
   std::unique_ptr<Runner> runner;
   if (parameters->client == "grpc") {
     runner.reset(new GrpcRunner(*parameters, watcher));
-  } else if (parameters->client == "gcscpp") {
+  } else if (parameters->client == "gcscpp-json" ||
+             parameters->client == "gcscpp-grpc") {
     runner.reset(new GcscppRunner(*parameters, watcher));
   } else {
     std::cerr << "Invalid client: " << parameters->client << std::endl;
