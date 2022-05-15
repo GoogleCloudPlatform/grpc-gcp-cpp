@@ -31,6 +31,7 @@ struct Parameters {
   bool crc32c;
   bool resumable;
   bool trying;
+  bool wait_threads;
   bool verbose;
 
   std::string report_tag;
