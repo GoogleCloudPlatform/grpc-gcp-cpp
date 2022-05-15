@@ -6,6 +6,7 @@
 #include <grpcpp/create_channel.h>
 #include <grpcpp/grpcpp.h>
 #include <grpcpp/security/credentials.h>
+#include <stdlib.h>
 
 #include <functional>
 #include <thread>
@@ -124,7 +125,12 @@ bool GrpcRunner::Run() {
           CreateCreateNewChannelStubProvider(channel_creator);
     }
     threads.emplace_back([thread_id, storage_stub_provider, &returns, this]() {
-      returns[thread_id - 1] = this->DoOperation(thread_id, storage_stub_provider);
+      bool r = this->DoOperation(thread_id, storage_stub_provider);
+      if (!r && !parameters_.wait_threads) {
+        std::cerr << "Thread id=" << thread_id << " stopped." << std::endl;
+        exit(1);
+      }
+      returns[thread_id - 1] = r;
     });
   }
   std::for_each(threads.begin(), threads.end(),
