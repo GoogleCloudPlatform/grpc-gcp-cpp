@@ -47,6 +47,7 @@ int main(int argc, char **argv) {
   watcher->SetDuration(absl::Now() - run_start);
 
   // Results
+  PrintResult(*watcher);
   if (!parameters->report_file.empty()) {
     WriteReport(*watcher, parameters->report_file, parameters->report_tag);
   }
