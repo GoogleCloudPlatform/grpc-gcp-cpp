@@ -18,9 +18,17 @@ http_archive(
 
 http_archive(
     name = "com_google_googleapis",
-    sha256 = "09baebb48905d27f047625e2ed05331ec43562afffe9e90f103e36c0a7a6e40d",
-    strip_prefix = "googleapis-cdc9747a73f6af2393ab51490fc3a3c11ff3620f",
-    url = "https://github.com/googleapis/googleapis/archive/cdc9747a73f6af2393ab51490fc3a3c11ff3620f.tar.gz",
+    sha256 = "523e5986bdb7f001807a96373f1f6a05833cebb98314bc34d0defd9126772285",
+    strip_prefix = "googleapis-a0d4c5c2a714a7317714ba6f0066a74ec8a9c10b",
+    build_file = "@com_github_googleapis_google_cloud_cpp//bazel:googleapis.BUILD",
+    url = "https://github.com/googleapis/googleapis/archive/a0d4c5c2a714a7317714ba6f0066a74ec8a9c10b.tar.gz",
+)
+
+http_archive(
+    name = "com_github_googleapis_google_cloud_cpp",
+    sha256 = "fb62f0e7dc964c5d3cd0d85977b85f3e0e7dce97e9029abf9c32ecc29db07043",
+    strip_prefix = "google-cloud-cpp-1.40.1",
+    url = "https://github.com/googleapis/google-cloud-cpp/archive/v1.40.1.tar.gz",
 )
 
 http_archive(
@@ -31,6 +39,10 @@ http_archive(
     url = "https://github.com/madler/zlib/archive/cacf7f1d4e3d44d871b605da3b647f07d718623f.tar.gz",
 )
 
+load("@com_github_googleapis_google_cloud_cpp//bazel:google_cloud_cpp_deps.bzl", "google_cloud_cpp_deps")
+
+google_cloud_cpp_deps()
+
 load("@com_google_googleapis//:repository_rules.bzl", "switched_rules_by_language")
 
 switched_rules_by_language(
@@ -40,7 +52,9 @@ switched_rules_by_language(
 )
 
 load('@com_github_grpc_grpc//bazel:grpc_deps.bzl', 'grpc_deps')
+
 grpc_deps()
 
 load('@com_github_grpc_grpc//bazel:grpc_extra_deps.bzl', 'grpc_extra_deps')
+
 grpc_extra_deps()
