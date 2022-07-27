@@ -2,7 +2,7 @@
 #define GCS_BENCHMARK_RUNNER_H_
 
 class Runner {
-public:
+ public:
   virtual bool Run() = 0;
 };
 
