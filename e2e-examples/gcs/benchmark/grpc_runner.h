@@ -3,14 +3,14 @@
 
 #include <grpcpp/channel.h>
 
+#include <functional>
+#include <memory>
+
 #include "channel_policy.h"
 #include "object_resolver.h"
 #include "parameters.h"
 #include "runner.h"
 #include "runner_watcher.h"
-
-#include <functional>
-#include <memory>
 
 class GrpcRunner : public Runner {
  public:
