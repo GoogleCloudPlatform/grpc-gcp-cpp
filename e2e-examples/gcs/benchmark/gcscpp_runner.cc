@@ -53,6 +53,8 @@ bool GcscppRunner::DoOperation(int thread_id,
 
 bool GcscppRunner::DoRead(int thread_id,
                           google::cloud::storage::Client storage_client) {
+  std::vector<char> buffer(4 * 1024 * 1024);
+  auto const buffer_size = static_cast<std::streamsize>(buffer.size());
   for (int run = 0; run < parameters_.runs; run++) {
     std::string object = object_resolver_.Resolve(thread_id, run);
 
@@ -62,16 +64,19 @@ bool GcscppRunner::DoRead(int thread_id,
       std::cerr << "Error reading object: " << reader.status() << "\n";
       return false;
     }
-
-    std::string contents{std::istreambuf_iterator<char>{reader}, {}};
-    int64_t total_bytes = contents.size();
+    int64_t total_bytes = 0;
+    while (reader.read(buffer.data(), buffer_size)) {
+      total_bytes += reader.gcount();
+    }
+    reader.Close();
     absl::Time run_end = absl::Now();
 
-    watcher_->NotifyCompleted(OperationType::Read, thread_id, 0, "",
+    auto p = reader.headers().find(":grpc-context-peer");
+    auto const& peer = p == reader.headers().end() ? "" : p->second;
+    watcher_->NotifyCompleted(OperationType::Read, thread_id, 0, peer,
                               parameters_.bucket, object, grpc::Status::OK,
                               total_bytes, run_start, run_end - run_start, {});
   }
-
   return true;
 }
 
