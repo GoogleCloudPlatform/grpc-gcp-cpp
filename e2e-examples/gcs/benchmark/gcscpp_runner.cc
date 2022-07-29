@@ -64,7 +64,8 @@ bool GcscppRunner::DoOperation(int thread_id,
   }
 }
 
-static std::string GetPeer(google::cloud::storage::ObjectReadStream stream) {
+static std::string GetPeer(
+    const google::cloud::storage::ObjectReadStream& stream) {
   auto p = stream.headers().find(":grpc-context-peer");
   if (p == stream.headers().end()) {
     p = stream.headers().find(":curl-peer");
@@ -127,8 +128,6 @@ bool GcscppRunner::DoRandomRead(int thread_id,
   std::string object = object_resolver_.Resolve(thread_id, 0);
   absl::BitGen gen;
   std::vector<char> buffer(4 * 1024 * 1024);
-  auto const buffer_size = static_cast<std::streamsize>(buffer.size());
-  std::vector<char> buf(parameters_.chunk_size);
   for (int run = 0; run < parameters_.runs; run++) {
     int64_t offset = absl::Uniform(gen, 0, chunks) * parameters_.chunk_size;
     absl::Time run_start = absl::Now();
@@ -141,7 +140,8 @@ bool GcscppRunner::DoRandomRead(int thread_id,
     }
     int64_t total_bytes = 0;
     while (total_bytes < parameters_.chunk_size) {
-      reader.read(buf.data(), std::min(buf.size(), parameters_.chunk_size));
+      reader.read(buffer.data(),
+                  std::min(buffer.size(), (size_t)parameters_.chunk_size));
       total_bytes += reader.gcount();
     }
     reader.Close();
