@@ -64,13 +64,13 @@ bool GcscppRunner::DoOperation(int thread_id,
   }
 }
 
-static std::string GetPeer(
-    const google::cloud::storage::ObjectReadStream& stream) {
-  auto p = stream.headers().find(":grpc-context-peer");
-  if (p == stream.headers().end()) {
-    p = stream.headers().find(":curl-peer");
+std::string ExtractPeer(
+    std::multimap<std::string, std::string> const& headers) {
+  auto p = headers.find(":grpc-context-peer");
+  if (p == headers.end()) {
+    p = headers.find(":curl-peer");
   }
-  return p == stream.headers().end() ? "" : p->second;
+  return p == headers.end() ? "" : p->second;
 }
 
 bool GcscppRunner::DoRead(int thread_id,
@@ -87,16 +87,21 @@ bool GcscppRunner::DoRead(int thread_id,
       return false;
     }
     int64_t total_bytes = 0;
+    std::vector<RunnerWatcher::Chunk> chunks;
+    chunks.reserve(256);
     while (reader.read(buffer.data(), buffer_size)) {
-      total_bytes += reader.gcount();
+      int64_t content_size = reader.gcount();
+      RunnerWatcher::Chunk chunk = {absl::Now(), content_size};
+      chunks.push_back(chunk);
+      total_bytes += content_size;
     }
     reader.Close();
     absl::Time run_end = absl::Now();
 
     watcher_->NotifyCompleted(OperationType::Read, thread_id, 0,
-                              GetPeer(reader), parameters_.bucket, object,
-                              grpc::Status::OK, total_bytes, run_start,
-                              run_end - run_start, {});
+                              ExtractPeer(reader.headers()), parameters_.bucket,
+                              object, grpc::Status::OK, total_bytes, run_start,
+                              run_end - run_start, chunks);
   }
   return true;
 }
@@ -139,18 +144,23 @@ bool GcscppRunner::DoRandomRead(int thread_id,
       return false;
     }
     int64_t total_bytes = 0;
+    std::vector<RunnerWatcher::Chunk> chunks;
+    chunks.reserve(256);
     while (total_bytes < parameters_.chunk_size) {
       reader.read(buffer.data(),
                   std::min(buffer.size(), (size_t)parameters_.chunk_size));
-      total_bytes += reader.gcount();
+      int64_t content_size = reader.gcount();
+      RunnerWatcher::Chunk chunk = {absl::Now(), content_size};
+      chunks.push_back(chunk);
+      total_bytes += content_size;
     }
     reader.Close();
     absl::Time run_end = absl::Now();
 
     watcher_->NotifyCompleted(OperationType::Read, thread_id, 0,
-                              GetPeer(reader), parameters_.bucket, object,
-                              grpc::Status::OK, total_bytes, run_start,
-                              run_end - run_start, {});
+                              ExtractPeer(reader.headers()), parameters_.bucket,
+                              object, grpc::Status::OK, total_bytes, run_start,
+                              run_end - run_start, chunks);
   }
 
   return true;
@@ -199,13 +209,12 @@ bool GcscppRunner::DoWrite(int thread_id,
       total_bytes += chunk_size;
     }
     writer.Close();
-
     absl::Time run_end = absl::Now();
 
-    watcher_->NotifyCompleted(OperationType::Write, thread_id, 0, "",
-                              parameters_.bucket, object, grpc::Status::OK,
-                              total_bytes, run_start, run_end - run_start,
-                              std::move(chunks));
+    watcher_->NotifyCompleted(OperationType::Write, thread_id, 0,
+                              ExtractPeer(writer.headers()), parameters_.bucket,
+                              object, grpc::Status::OK, total_bytes, run_start,
+                              run_end - run_start, std::move(chunks));
   }
 
   return true;
