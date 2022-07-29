@@ -136,9 +136,10 @@ bool GcscppRunner::DoRandomRead(int thread_id,
   for (int run = 0; run < parameters_.runs; run++) {
     int64_t offset = absl::Uniform(gen, 0, chunks) * parameters_.chunk_size;
     absl::Time run_start = absl::Now();
-    auto reader = storage_client.ReadObject(
-        parameters_.bucket, object,
-        google::cloud::storage::ReadFromOffset(offset));
+    auto reader =
+        storage_client.ReadObject(parameters_.bucket, object,
+                                  google::cloud::storage::ReadRange(
+                                      offset, offset + parameters_.chunk_size));
     if (!reader) {
       std::cerr << "Error reading object: " << reader.status() << "\n";
       return false;
