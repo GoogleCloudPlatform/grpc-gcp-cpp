@@ -15,13 +15,26 @@ GcscppRunner::GcscppRunner(Parameters parameters,
                        parameters_.object_start, parameters_.object_stop),
       watcher_(watcher) {}
 
-bool GcscppRunner::Run() {
-  auto client = ::google::cloud::storage::Client();
-  if (parameters_.client == "gcscpp-grpc") {
-    client = ::google::cloud::storage_experimental::DefaultGrpcClient();
+static google::cloud::storage::Client CreateClient(
+    const Parameters& parameters) {
+  auto opts = google::cloud::Options{};
+  if (parameters.client == "gcscpp-grpc") {
+    std::string target = parameters.host;
+    if (parameters.td) {
+      // TODO(veblush): Remove experimental suffix once this code is proven
+      // stable.
+      target = "google-c2p-experimental:///" + target;
+    }
+    return ::google::cloud::storage_experimental::DefaultGrpcClient(
+        opts.set<google::cloud::storage_experimental::GrpcPluginOption>("media")
+            .set<google::cloud::EndpointOption>(target));
   } else {
-    client = ::google::cloud::storage::Client();
+    return ::google::cloud::storage::Client();
   }
+}
+
+bool GcscppRunner::Run() {
+  auto client = CreateClient(parameters_);
 
   // Spawns benchmark threads and waits until they're done.
   std::vector<std::thread> threads;
