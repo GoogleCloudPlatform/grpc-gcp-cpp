@@ -85,6 +85,9 @@ bool GcscppRunner::DoRead(int thread_id,
     absl::Time run_end = absl::Now();
 
     auto p = reader.headers().find(":grpc-context-peer");
+    if (p == reader.headers().end()) {
+      p = reader.headers().find(":curl-peer");
+    }
     auto const& peer = p == reader.headers().end() ? "" : p->second;
     watcher_->NotifyCompleted(OperationType::Read, thread_id, 0, peer,
                               parameters_.bucket, object, grpc::Status::OK,
