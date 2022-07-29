@@ -15,13 +15,26 @@ GcscppRunner::GcscppRunner(Parameters parameters,
                        parameters_.object_start, parameters_.object_stop),
       watcher_(watcher) {}
 
-bool GcscppRunner::Run() {
-  auto client = ::google::cloud::storage::Client();
-  if (parameters_.client == "gcscpp-grpc") {
-    client = ::google::cloud::storage_experimental::DefaultGrpcClient();
+static google::cloud::storage::Client CreateClient(
+    const Parameters& parameters) {
+  auto opts = google::cloud::Options{};
+  if (parameters.client == "gcscpp-grpc") {
+    std::string target = parameters.host;
+    if (parameters.td) {
+      // TODO(veblush): Remove experimental suffix once this code is proven
+      // stable.
+      target = "google-c2p-experimental:///" + target;
+    }
+    return ::google::cloud::storage_experimental::DefaultGrpcClient(
+        opts.set<google::cloud::storage_experimental::GrpcPluginOption>("media")
+            .set<google::cloud::EndpointOption>(target));
   } else {
-    client = ::google::cloud::storage::Client();
+    return ::google::cloud::storage::Client();
   }
+}
+
+bool GcscppRunner::Run() {
+  auto client = CreateClient(parameters_);
 
   // Spawns benchmark threads and waits until they're done.
   std::vector<std::thread> threads;
@@ -51,8 +64,19 @@ bool GcscppRunner::DoOperation(int thread_id,
   }
 }
 
+std::string ExtractPeer(
+    std::multimap<std::string, std::string> const& headers) {
+  auto p = headers.find(":grpc-context-peer");
+  if (p == headers.end()) {
+    p = headers.find(":curl-peer");
+  }
+  return p == headers.end() ? "" : p->second;
+}
+
 bool GcscppRunner::DoRead(int thread_id,
                           google::cloud::storage::Client storage_client) {
+  std::vector<char> buffer(4 * 1024 * 1024);
+  auto const buffer_size = static_cast<std::streamsize>(buffer.size());
   for (int run = 0; run < parameters_.runs; run++) {
     std::string object = object_resolver_.Resolve(thread_id, run);
 
@@ -62,16 +86,23 @@ bool GcscppRunner::DoRead(int thread_id,
       std::cerr << "Error reading object: " << reader.status() << "\n";
       return false;
     }
-
-    std::string contents{std::istreambuf_iterator<char>{reader}, {}};
-    int64_t total_bytes = contents.size();
+    int64_t total_bytes = 0;
+    std::vector<RunnerWatcher::Chunk> chunks;
+    chunks.reserve(256);
+    while (reader.read(buffer.data(), buffer_size)) {
+      int64_t content_size = reader.gcount();
+      RunnerWatcher::Chunk chunk = {absl::Now(), content_size};
+      chunks.push_back(chunk);
+      total_bytes += content_size;
+    }
+    reader.Close();
     absl::Time run_end = absl::Now();
 
-    watcher_->NotifyCompleted(OperationType::Read, thread_id, 0, "",
-                              parameters_.bucket, object, grpc::Status::OK,
-                              total_bytes, run_start, run_end - run_start, {});
+    watcher_->NotifyCompleted(OperationType::Read, thread_id, 0,
+                              ExtractPeer(reader.headers()), parameters_.bucket,
+                              object, grpc::Status::OK, total_bytes, run_start,
+                              run_end - run_start, chunks);
   }
-
   return true;
 }
 
@@ -101,26 +132,36 @@ bool GcscppRunner::DoRandomRead(int thread_id,
 
   std::string object = object_resolver_.Resolve(thread_id, 0);
   absl::BitGen gen;
-  std::vector<char> buf(parameters_.chunk_size);
+  std::vector<char> buffer(4 * 1024 * 1024);
   for (int run = 0; run < parameters_.runs; run++) {
     int64_t offset = absl::Uniform(gen, 0, chunks) * parameters_.chunk_size;
     absl::Time run_start = absl::Now();
-    auto reader = storage_client.ReadObject(
-        parameters_.bucket, object,
-        google::cloud::storage::ReadFromOffset(offset));
+    auto reader =
+        storage_client.ReadObject(parameters_.bucket, object,
+                                  google::cloud::storage::ReadRange(
+                                      offset, offset + parameters_.chunk_size));
     if (!reader) {
       std::cerr << "Error reading object: " << reader.status() << "\n";
       return false;
     }
     int64_t total_bytes = 0;
-    reader.read(buf.data(), buf.size());
-    total_bytes += buf.size();
+    std::vector<RunnerWatcher::Chunk> chunks;
+    chunks.reserve(256);
+    while (total_bytes < parameters_.chunk_size) {
+      reader.read(buffer.data(),
+                  std::min(buffer.size(), (size_t)parameters_.chunk_size));
+      int64_t content_size = reader.gcount();
+      RunnerWatcher::Chunk chunk = {absl::Now(), content_size};
+      chunks.push_back(chunk);
+      total_bytes += content_size;
+    }
     reader.Close();
     absl::Time run_end = absl::Now();
 
-    watcher_->NotifyCompleted(OperationType::Read, thread_id, 0, "",
-                              parameters_.bucket, object, grpc::Status::OK,
-                              total_bytes, run_start, run_end - run_start, {});
+    watcher_->NotifyCompleted(OperationType::Read, thread_id, 0,
+                              ExtractPeer(reader.headers()), parameters_.bucket,
+                              object, grpc::Status::OK, total_bytes, run_start,
+                              run_end - run_start, chunks);
   }
 
   return true;
@@ -169,13 +210,12 @@ bool GcscppRunner::DoWrite(int thread_id,
       total_bytes += chunk_size;
     }
     writer.Close();
-
     absl::Time run_end = absl::Now();
 
-    watcher_->NotifyCompleted(OperationType::Write, thread_id, 0, "",
-                              parameters_.bucket, object, grpc::Status::OK,
-                              total_bytes, run_start, run_end - run_start,
-                              std::move(chunks));
+    watcher_->NotifyCompleted(OperationType::Write, thread_id, 0,
+                              ExtractPeer(writer.headers()), parameters_.bucket,
+                              object, grpc::Status::OK, total_bytes, run_start,
+                              run_end - run_start, std::move(chunks));
   }
 
   return true;
