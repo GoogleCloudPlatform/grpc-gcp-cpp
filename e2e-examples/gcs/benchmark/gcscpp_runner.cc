@@ -64,6 +64,14 @@ bool GcscppRunner::DoOperation(int thread_id,
   }
 }
 
+static std::string GetPeer(google::cloud::storage::ObjectReadStream stream) {
+  auto p = stream.headers().find(":grpc-context-peer");
+  if (p == stream.headers().end()) {
+    p = stream.headers().find(":curl-peer");
+  }
+  return p == stream.headers().end() ? "" : p->second;
+}
+
 bool GcscppRunner::DoRead(int thread_id,
                           google::cloud::storage::Client storage_client) {
   std::vector<char> buffer(4 * 1024 * 1024);
@@ -84,14 +92,10 @@ bool GcscppRunner::DoRead(int thread_id,
     reader.Close();
     absl::Time run_end = absl::Now();
 
-    auto p = reader.headers().find(":grpc-context-peer");
-    if (p == reader.headers().end()) {
-      p = reader.headers().find(":curl-peer");
-    }
-    auto const& peer = p == reader.headers().end() ? "" : p->second;
-    watcher_->NotifyCompleted(OperationType::Read, thread_id, 0, peer,
-                              parameters_.bucket, object, grpc::Status::OK,
-                              total_bytes, run_start, run_end - run_start, {});
+    watcher_->NotifyCompleted(OperationType::Read, thread_id, 0,
+                              GetPeer(reader), parameters_.bucket, object,
+                              grpc::Status::OK, total_bytes, run_start,
+                              run_end - run_start, {});
   }
   return true;
 }
@@ -122,6 +126,8 @@ bool GcscppRunner::DoRandomRead(int thread_id,
 
   std::string object = object_resolver_.Resolve(thread_id, 0);
   absl::BitGen gen;
+  std::vector<char> buffer(4 * 1024 * 1024);
+  auto const buffer_size = static_cast<std::streamsize>(buffer.size());
   std::vector<char> buf(parameters_.chunk_size);
   for (int run = 0; run < parameters_.runs; run++) {
     int64_t offset = absl::Uniform(gen, 0, chunks) * parameters_.chunk_size;
@@ -134,14 +140,17 @@ bool GcscppRunner::DoRandomRead(int thread_id,
       return false;
     }
     int64_t total_bytes = 0;
-    reader.read(buf.data(), buf.size());
-    total_bytes += buf.size();
+    while (total_bytes < parameters_.chunk_size) {
+      reader.read(buf.data(), std::min(buf.size(), parameters_.chunk_size));
+      total_bytes += reader.gcount();
+    }
     reader.Close();
     absl::Time run_end = absl::Now();
 
-    watcher_->NotifyCompleted(OperationType::Read, thread_id, 0, "",
-                              parameters_.bucket, object, grpc::Status::OK,
-                              total_bytes, run_start, run_end - run_start, {});
+    watcher_->NotifyCompleted(OperationType::Read, thread_id, 0,
+                              GetPeer(reader), parameters_.bucket, object,
+                              grpc::Status::OK, total_bytes, run_start,
+                              run_end - run_start, {});
   }
 
   return true;
