@@ -89,7 +89,7 @@ bool GcscppRunner::DoRead(int thread_id,
     int64_t total_bytes = 0;
     std::vector<RunnerWatcher::Chunk> chunks;
     chunks.reserve(256);
-    while (!reader.eof() && total_bytes < parameters_.read_limit) {
+    while (!reader.eof()) {
       reader.read(buffer.data(), buffer_size);
       int64_t content_size = reader.gcount();
       RunnerWatcher::Chunk chunk = {absl::Now(), content_size};
