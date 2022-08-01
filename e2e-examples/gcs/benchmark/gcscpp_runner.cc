@@ -18,6 +18,13 @@ GcscppRunner::GcscppRunner(Parameters parameters,
 static google::cloud::storage::Client CreateClient(
     const Parameters& parameters) {
   auto opts = google::cloud::Options{};
+  if (parameters.write_size > 0) {
+    // Make a upload buffer big enough to make it done in a single rpc call.
+    std::size_t upload_buffer_size = std::min<std::size_t>(
+        128 * 1024 * 1024, (std::size_t)parameters.write_size);
+    opts.set<google::cloud::storage::UploadBufferSizeOption>(
+        upload_buffer_size + 1);
+  }
   if (parameters.client == "gcscpp-grpc") {
     std::string target = parameters.host;
     if (parameters.td) {
