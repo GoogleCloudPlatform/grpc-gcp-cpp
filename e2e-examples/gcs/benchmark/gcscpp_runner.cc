@@ -35,9 +35,8 @@ static google::cloud::storage::Client CreateClient(
     return ::google::cloud::storage_experimental::DefaultGrpcClient(
         opts.set<google::cloud::storage_experimental::GrpcPluginOption>("media")
             .set<google::cloud::EndpointOption>(target));
-  } else {
-    return ::google::cloud::storage::Client();
   }
+  return ::google::cloud::storage::Client(std::move(opts));
 }
 
 bool GcscppRunner::Run() {
