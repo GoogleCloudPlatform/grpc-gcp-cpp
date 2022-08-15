@@ -27,6 +27,21 @@ cc_library(
         "@com_github_grpc_grpc//:grpc++",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
+        "channel_poller",
+    ],
+)
+
+cc_library(
+    name = "channel_poller",
+    hdrs = [
+        "channel_poller.h",
+    ],
+    srcs = [
+        "channel_poller.cc",
+    ],
+    deps = [
+        "@com_github_grpc_grpc//:grpc++",
+        "@com_google_absl//absl/synchronization",
     ],
 )
 
