@@ -1,9 +1,9 @@
 #include "channel_policy.h"
-#include "channel_poller.h"
 
 #include <unordered_map>
 
 #include "absl/synchronization/mutex.h"
+#include "channel_poller.h"
 
 class ConstChannelPool : public StorageStubProvider {
  public:
@@ -12,6 +12,12 @@ class ConstChannelPool : public StorageStubProvider {
       : channel_creator_(channel_creator) {
     channel_ = channel_creator();
     channel_poller_.reset(new ChannelPoller(channel_));
+  }
+
+  ~ConstChannelPool() {
+    // Resetting channel_ first so that channel can be destroyed when
+    // channel_poller is destroyed.
+    channel_.reset();
   }
 
   StorageStubProvider::StubHolder GetStorageStub() override {
