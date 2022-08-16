@@ -1,4 +1,5 @@
 #include "channel_policy.h"
+#include "channel_poller.h"
 
 #include <unordered_map>
 
@@ -10,6 +11,7 @@ class ConstChannelPool : public StorageStubProvider {
       std::function<std::shared_ptr<grpc::Channel>()> channel_creator)
       : channel_creator_(channel_creator) {
     channel_ = channel_creator();
+    channel_poller_.reset(new ChannelPoller(channel_));
   }
 
   StorageStubProvider::StubHolder GetStorageStub() override {
@@ -33,6 +35,7 @@ class ConstChannelPool : public StorageStubProvider {
  private:
   std::function<std::shared_ptr<grpc::Channel>()> channel_creator_;
   std::shared_ptr<grpc::Channel> channel_;
+  std::unique_ptr<ChannelPoller> channel_poller_;
 };
 
 std::shared_ptr<StorageStubProvider> CreateConstChannelPool(
