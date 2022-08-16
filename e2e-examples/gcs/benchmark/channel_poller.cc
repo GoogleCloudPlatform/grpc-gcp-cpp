@@ -12,6 +12,7 @@ ChannelPoller::ChannelPoller(std::shared_ptr<grpc::Channel> channel)
 ChannelPoller::~ChannelPoller() {
   {
     absl::MutexLock lock(&mu_);
+    channel_.reset();
     shutdown_ = true;
     cq_.Shutdown();
   }
@@ -20,9 +21,9 @@ ChannelPoller::~ChannelPoller() {
 
 void ChannelPoller::StartWatch() {
   grpc_connectivity_state last_observed = channel_->GetState(true);
-  channel_->NotifyOnStateChange(
-      last_observed, std::chrono::system_clock::now() + std::chrono::seconds(1),
-      &cq_, nullptr);
+  channel_->NotifyOnStateChange(last_observed,
+                                std::chrono::system_clock::time_point::max(),
+                                &cq_, nullptr);
 }
 
 void ChannelPoller::ThreadRun() {
