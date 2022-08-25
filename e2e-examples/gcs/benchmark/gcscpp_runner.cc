@@ -235,6 +235,11 @@ bool GcscppRunner::DoWrite(int thread_id,
     chunks.reserve(256);
 
     auto writer = storage_client.WriteObject(parameters_.bucket, object);
+    if (!writer) {
+      std::cerr << "Error writing object: " << writer.last_status() << "\n";
+      return false;
+    }
+
     for (int64_t o = 0; o < parameters_.write_size; o += max_chunk_size) {
       int64_t chunk_size = std::min(max_chunk_size, parameters_.write_size - o);
       writer.write(content.data(), static_cast<std::streamsize>(chunk_size));
