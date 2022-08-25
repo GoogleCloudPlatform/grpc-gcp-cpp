@@ -33,8 +33,7 @@ using ReadObjectResponse = google::storage::v2::ReadObjectResponse;
 
 ABSL_FLAG(bool, directpath, true, "Whether to allow DirectPath");
 ABSL_FLAG(std::string, access_token, "", "Access token for auth");
-ABSL_FLAG(std::string, host, "dns:///storage.googleapis.com:443",
-          "Host to reach");
+ABSL_FLAG(std::string, host, "", "Host to reach");
 ABSL_FLAG(std::string, bucket, "gcs-grpc-team-veblush1",
           "Bucket to fetch object from");
 ABSL_FLAG(std::string, object, "1MB.bin", "Object to download");

@@ -41,6 +41,9 @@ static google::cloud::storage::Client CreateClient(
   }
   if (parameters.client == "gcscpp-grpc") {
     std::string target = parameters.host;
+    if (target.empty()) {
+      target = "storage.googleapis.com";
+    }
     if (parameters.td) {
       // TODO(veblush): Remove experimental suffix once this code is proven
       // stable.
@@ -49,8 +52,16 @@ static google::cloud::storage::Client CreateClient(
     return ::google::cloud::storage_experimental::DefaultGrpcClient(
         opts.set<google::cloud::storage_experimental::GrpcPluginOption>("media")
             .set<google::cloud::EndpointOption>(target));
+  } else {
+    if (!parameters.host.empty()) {
+      opts.set<google::cloud::storage::RestEndpointOption>(parameters.host);
+    }
+    if (!parameters.target_api_version.empty()) {
+      opts.set<google::cloud::storage::internal::TargetApiVersionOption>(
+          parameters.target_api_version);
+    }
+    return ::google::cloud::storage::Client(std::move(opts));
   }
-  return ::google::cloud::storage::Client(std::move(opts));
 }
 
 bool GcscppRunner::Run() {
@@ -222,6 +233,11 @@ bool GcscppRunner::DoWrite(int thread_id,
     chunks.reserve(256);
 
     auto writer = storage_client.WriteObject(parameters_.bucket, object);
+    if (!writer) {
+      std::cerr << "Error writing object: " << writer.last_status() << "\n";
+      return false;
+    }
+
     for (int64_t o = 0; o < parameters_.write_size; o += max_chunk_size) {
       int64_t chunk_size = std::min(max_chunk_size, parameters_.write_size - o);
       writer.write(content.data(), static_cast<std::streamsize>(chunk_size));

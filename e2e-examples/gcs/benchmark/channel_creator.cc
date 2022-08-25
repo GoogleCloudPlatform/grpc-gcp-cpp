@@ -26,6 +26,9 @@ std::shared_ptr<grpc::Channel> CreateGrpcChannel(absl::string_view host,
                                                  absl::string_view network,
                                                  bool use_rr, bool use_td) {
   std::string target = std::string(host);
+  if (target.empty()) {
+    target = "storage.googleapis.com";
+  }
   if (use_td) {
     // TODO(veblush): Remove experimental suffix once this code is proven
     // stable.
