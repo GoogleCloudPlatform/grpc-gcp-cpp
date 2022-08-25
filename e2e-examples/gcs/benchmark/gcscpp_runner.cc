@@ -52,15 +52,18 @@ static google::cloud::storage::Client CreateClient(
     return ::google::cloud::storage_experimental::DefaultGrpcClient(
         opts.set<google::cloud::storage_experimental::GrpcPluginOption>("media")
             .set<google::cloud::EndpointOption>(target));
+  } else {
+    if (!parameters.host.empty()) {
+      opts.set<google::cloud::storage::RestEndpointOption>(parameters.host);
+      printf("host=%s\n", parameters.host.c_str());
+    }
+    if (!parameters.target_api_version.empty()) {
+      opts.set<google::cloud::storage::internal::TargetApiVersionOption>(
+          parameters.target_api_version);
+      printf("target_api_version=%s\n", parameters.target_api_version.c_str());   
+    }
+    return ::google::cloud::storage::Client(std::move(opts));
   }
-  if (!parameters.host.empty()) {
-    opts.set<google::cloud::storage::RestEndpointOption>(parameters.host);
-  }
-  if (!parameters.target_api_version.empty()) {
-    opts.set<google::cloud::storage::internal::TargetApiVersionOption>(
-        parameters.target_api_version);
-  }
-  return ::google::cloud::storage::Client(std::move(opts));
 }
 
 bool GcscppRunner::Run() {
