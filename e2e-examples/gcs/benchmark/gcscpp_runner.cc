@@ -55,12 +55,10 @@ static google::cloud::storage::Client CreateClient(
   } else {
     if (!parameters.host.empty()) {
       opts.set<google::cloud::storage::RestEndpointOption>(parameters.host);
-      printf("host=%s\n", parameters.host.c_str());
     }
     if (!parameters.target_api_version.empty()) {
       opts.set<google::cloud::storage::internal::TargetApiVersionOption>(
           parameters.target_api_version);
-      printf("target_api_version=%s\n", parameters.target_api_version.c_str());   
     }
     return ::google::cloud::storage::Client(std::move(opts));
   }
