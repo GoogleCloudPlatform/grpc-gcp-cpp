@@ -41,6 +41,9 @@ static google::cloud::storage::Client CreateClient(
   }
   if (parameters.client == "gcscpp-grpc") {
     std::string target = parameters.host;
+    if (target.empty()) {
+      target = "storage.googleapis.com";
+    }
     if (parameters.td) {
       // TODO(veblush): Remove experimental suffix once this code is proven
       // stable.
@@ -49,6 +52,9 @@ static google::cloud::storage::Client CreateClient(
     return ::google::cloud::storage_experimental::DefaultGrpcClient(
         opts.set<google::cloud::storage_experimental::GrpcPluginOption>("media")
             .set<google::cloud::EndpointOption>(target));
+  }
+  if (!parameters.host.empty()) {
+    opts.set<google::cloud::EndpointOption>(parameters.host);
   }
   return ::google::cloud::storage::Client(std::move(opts));
 }
