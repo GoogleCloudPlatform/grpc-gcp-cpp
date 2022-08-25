@@ -56,7 +56,7 @@ ABSL_FLAG(std::string, report_file, "",
           "The file to append the line for the run");
 ABSL_FLAG(std::string, data_file, "", "The data file to dump the all data");
 
-ABSL_FLAG(std::string, host, "storage.googleapis.com", "Host to reach");
+ABSL_FLAG(std::string, host, "", "Host to reach");
 ABSL_FLAG(std::string, target_api_version, "", "Target API version (for Json)");
 ABSL_FLAG(std::string, access_token, "", "Access token for auth");
 ABSL_FLAG(std::string, network, "default", "Network path (default, cfe, dp)");
