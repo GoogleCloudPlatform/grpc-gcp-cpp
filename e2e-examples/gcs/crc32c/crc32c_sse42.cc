@@ -27,11 +27,11 @@
 #include <cstddef>
 #include <cstdint>
 
+#include "./crc32c_config.h"
 #include "./crc32c_internal.h"
 #include "./crc32c_prefetch.h"
 #include "./crc32c_read_le.h"
 #include "./crc32c_round_up.h"
-#include "./crc32c_config.h"
 
 #if HAVE_SSE42 && (defined(_M_X64) || defined(__x86_64__))
 

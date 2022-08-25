@@ -16,11 +16,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file. See the AUTHORS file for names of contributors.
 
-#include "./crc32c_internal.h"
-
 #include <cstddef>
 #include <cstdint>
 
+#include "./crc32c_internal.h"
 #include "./crc32c_prefetch.h"
 #include "./crc32c_read_le.h"
 #include "./crc32c_round_up.h"
