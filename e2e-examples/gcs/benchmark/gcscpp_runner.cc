@@ -54,7 +54,11 @@ static google::cloud::storage::Client CreateClient(
             .set<google::cloud::EndpointOption>(target));
   }
   if (!parameters.host.empty()) {
-    opts.set<google::cloud::EndpointOption>(parameters.host);
+    opts.set<google::cloud::storage::RestEndpointOption>(parameters.host);
+  }
+  if (!parameters.target_api_version.empty()) {
+    opts.set<google::cloud::storage::internal::TargetApiVersionOption>(
+        parameters.target_api_version);
   }
   return ::google::cloud::storage::Client(std::move(opts));
 }
