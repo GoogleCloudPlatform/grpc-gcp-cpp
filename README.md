@@ -5,4 +5,5 @@ Copyright 2022
 
 ## About This Repository
 
-This repo contains supporting infrastructures such as end2end tests and benchmarks for accessing cloud APIs with gRPC client libraries.
+This repo contains supporting infrastructures such as end2end tests and
+benchmarks for accessing cloud APIs with gRPC client libraries.
