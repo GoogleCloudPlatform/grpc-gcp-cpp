@@ -45,9 +45,7 @@ static google::cloud::storage::Client CreateClient(
       target = "storage.googleapis.com";
     }
     if (parameters.td) {
-      // TODO(veblush): Remove experimental suffix once this code is proven
-      // stable.
-      target = "google-c2p-experimental:///" + target;
+      target = "google-c2p:///" + target;
     }
     return ::google::cloud::storage_experimental::DefaultGrpcClient(
         opts.set<google::cloud::storage_experimental::GrpcPluginOption>("media")
