@@ -97,7 +97,7 @@ void PrintResult(const RunnerWatcher& watcher) {
     return;
   }
 
-  auto elapsed_time = absl::ToDoubleSeconds(watcher.GetDuration());
+  auto elapsed_time = absl::ToDoubleSeconds(watcher.GetNonWarmupsDuration());
 
   // Total throughput
 
@@ -196,7 +196,7 @@ void WriteReport(const RunnerWatcher& watcher, std::string report_file,
     f << absl::StrJoin(c, "\t") << std::endl;
   }
 
-  auto elapsed_time = absl::ToDoubleSeconds(watcher.GetDuration());
+  auto elapsed_time = absl::ToDoubleSeconds(watcher.GetNonWarmupsDuration());
 
   // Calculates stats
 
@@ -274,8 +274,11 @@ void WriteData(const RunnerWatcher& watcher, std::string file,
     << std::endl;
   f << absl::StrFormat("\t\"tag\": \"%s\",", tag) << std::endl;
   f << absl::StrFormat("\t\"duration\": %f,",
-                       absl::ToDoubleSeconds(watcher.GetDuration()))
+                       absl::ToDoubleSeconds(watcher.GetNonWarmupsDuration()))
     << std::endl;
+
+  // All operations
+
   f << "\t\"operations\": [" << std::endl;
   for (const auto& op : watcher.GetNonWarmupsOperations()) {
     f << "\t\t{" << std::endl;

@@ -64,6 +64,8 @@ class RunnerWatcher {
 
   std::vector<Operation> GetNonWarmupsOperations() const;
 
+  absl::Duration GetNonWarmupsDuration() const;
+
  private:
   size_t warmups_;
   bool verbose_;
