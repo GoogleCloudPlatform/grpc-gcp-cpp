@@ -78,3 +78,17 @@ std::vector<RunnerWatcher::Operation> RunnerWatcher::GetNonWarmupsOperations()
   return std::vector<RunnerWatcher::Operation>(operations_.begin() + warmups_,
                                                operations_.end());
 }
+
+absl::Duration RunnerWatcher::GetNonWarmupsDuration() const {
+  auto operations = GetNonWarmupsOperations();
+  if (operations.empty()) {
+    return absl::ZeroDuration();
+  }
+  absl::Time begin = operations[0].time;
+  absl::Time end = operations[0].time + operations[0].elapsed_time;
+  for (auto op : operations) {
+    begin = std::min(begin, op.time);
+    end = std::min(begin, op.time) + op.elapsed_time;
+  }
+  return end - begin;
+}
