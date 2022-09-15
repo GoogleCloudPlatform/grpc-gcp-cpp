@@ -46,6 +46,7 @@ struct Parameters {
   bool resumable;
   bool trying;
   bool wait_threads;
+  bool steal_work;
   bool verbose;
 
   std::string report_tag;

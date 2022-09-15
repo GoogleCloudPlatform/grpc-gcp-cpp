@@ -96,6 +96,7 @@ cc_library(
         "parameters",
         "runner",
         "runner_watcher",
+        "work_queue",
         "@com_google_googleapis//google/storage/v2:storage_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",
         "@com_github_grpc_grpc//src/proto/grpc/health/v1:health_proto",
@@ -115,6 +116,19 @@ cc_library(
     ],
     deps = [
         "@com_google_absl//absl/strings",
+    ],
+)
+
+cc_library(
+    name = "work_queue",
+    hdrs = [
+        "work_queue.h",
+    ],
+    srcs = [
+        "work_queue.cc",
+    ],
+    deps = [
+        "@com_google_absl//absl/synchronization",
     ],
 )
 
