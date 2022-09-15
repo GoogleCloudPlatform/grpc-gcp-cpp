@@ -25,6 +25,7 @@
 #include "parameters.h"
 #include "runner.h"
 #include "runner_watcher.h"
+#include "work_queue.h"
 
 class GrpcRunner : public Runner {
  public:
@@ -45,6 +46,7 @@ class GrpcRunner : public Runner {
   Parameters parameters_;
   std::function<std::shared_ptr<grpc::Channel>()> channel_creator_;
   ObjectResolver object_resolver_;
+  std::shared_ptr<WorkQueue> work_queue_;
   std::shared_ptr<RunnerWatcher> watcher_;
 };
 

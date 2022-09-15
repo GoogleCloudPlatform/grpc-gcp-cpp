@@ -47,7 +47,10 @@ ABSL_FLAG(int, threads, 1, "The number of threads running downloding objects");
 ABSL_FLAG(bool, crc32c, false, "Check CRC32C check for received content");
 ABSL_FLAG(bool, resumable, false, "Use resumable-write for writing");
 ABSL_FLAG(bool, trying, false, "Keep trying the same operation if failed");
-ABSL_FLAG(bool, wait_threads, false, "Wait until all threads are done");
+ABSL_FLAG(bool, wait_threads, false,
+          "Wait until all threads are done when any of operations fails");
+ABSL_FLAG(bool, steal_work, false,
+          "Whether worker threads can steal work from other threads ");
 ABSL_FLAG(bool, verbose, false, "Show debug output and progress updates");
 
 ABSL_FLAG(std::string, report_tag, "",
@@ -114,6 +117,7 @@ absl::optional<Parameters> GetParameters() {
   p.resumable = absl::GetFlag(FLAGS_resumable);
   p.trying = absl::GetFlag(FLAGS_trying);
   p.wait_threads = absl::GetFlag(FLAGS_wait_threads);
+  p.steal_work = absl::GetFlag(FLAGS_steal_work);
   p.verbose = absl::GetFlag(FLAGS_verbose);
   p.report_tag = absl::GetFlag(FLAGS_report_tag);
   p.report_file = absl::GetFlag(FLAGS_report_file);

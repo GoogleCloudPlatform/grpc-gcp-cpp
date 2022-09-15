@@ -40,16 +40,12 @@ class ConstChannelPool : public StorageStubProvider {
     return holder;
   }
 
-  bool ReportResult(void* handle, const grpc::Status& status,
+  void ReportResult(void* handle, const grpc::Status& status,
                     const grpc::ClientContext& context,
                     absl::Duration elapsed_time, int64_t bytes) override {
-    if (status.ok()) {
-      return true;
-    } else if (status.error_code() == grpc::StatusCode::CANCELLED) {
+    if (status.error_code() == grpc::StatusCode::CANCELLED) {
       channel_ = channel_creator_();
-      return true;
     }
-    return false;
   }
 
  private:
@@ -76,11 +72,9 @@ class CreateNewChannelStubProvider : public StorageStubProvider {
     return holder;
   }
 
-  bool ReportResult(void* handle, const grpc::Status& status,
+  void ReportResult(void* handle, const grpc::Status& status,
                     const grpc::ClientContext& context,
-                    absl::Duration elapsed_time, int64_t bytes) override {
-    return (status.ok() || status.error_code() == grpc::StatusCode::CANCELLED);
-  }
+                    absl::Duration elapsed_time, int64_t bytes) override {}
 
  private:
   std::function<std::shared_ptr<grpc::Channel>()> channel_creator_;
@@ -111,13 +105,11 @@ class RoundRobinChannelPool : public StorageStubProvider {
     return holder;
   }
 
-  bool ReportResult(void* handle, const grpc::Status& status,
+  void ReportResult(void* handle, const grpc::Status& status,
                     const grpc::ClientContext& context,
                     absl::Duration elapsed_time, int64_t bytes) override {
-    if (status.ok()) {
-      return true;
-    } else if (status.error_code() == grpc::StatusCode::CANCELLED ||
-               status.error_code() == grpc::StatusCode::DEADLINE_EXCEEDED) {
+    if (status.error_code() == grpc::StatusCode::CANCELLED ||
+        status.error_code() == grpc::StatusCode::DEADLINE_EXCEEDED) {
       auto i = std::find_if(channels_.begin(), channels_.end(),
                             [handle](std::shared_ptr<grpc::Channel> val) {
                               return (void*)val.get() == handle;
@@ -126,10 +118,8 @@ class RoundRobinChannelPool : public StorageStubProvider {
         std::cout << "Evict the channel (peer=" << context.peer()
                   << ") due to error:" << status.error_code() << std::endl;
         *i = channel_creator_();
-        return true;
       }
     }
-    return false;
   }
 
  private:
@@ -174,7 +164,7 @@ class RoundRobinPlusChannelPool : public StorageStubProvider {
     return holder;
   }
 
-  bool ReportResult(void* handle, const grpc::Status& status,
+  void ReportResult(void* handle, const grpc::Status& status,
                     const grpc::ClientContext& context,
                     absl::Duration elapsed_time, int64_t bytes) override {
     absl::MutexLock l(&lock_);
@@ -190,10 +180,8 @@ class RoundRobinPlusChannelPool : public StorageStubProvider {
 
     // If the error indicates that the channel is hopeless,
     // replace it with the newly created one.
-    if (status.ok()) {
-      return true;
-    } else if (status.error_code() == grpc::StatusCode::CANCELLED ||
-               status.error_code() == grpc::StatusCode::DEADLINE_EXCEEDED) {
+    if (status.error_code() == grpc::StatusCode::CANCELLED ||
+        status.error_code() == grpc::StatusCode::DEADLINE_EXCEEDED) {
       auto i = std::find_if(channel_states_.begin(), channel_states_.end(),
                             [handle](const ChannelState& val) {
                               return (void*)val.channel.get() == handle;
@@ -204,9 +192,6 @@ class RoundRobinPlusChannelPool : public StorageStubProvider {
         i->channel = channel_creator_();
         i->in_use_count = 0;
       }
-      return true;
-    } else {
-      return false;
     }
   }
 
@@ -247,7 +232,7 @@ class SmartRoundRobinChannelPool : public StorageStubProvider {
     return holder;
   }
 
-  bool ReportResult(void* handle, const grpc::Status& status,
+  void ReportResult(void* handle, const grpc::Status& status,
                     const grpc::ClientContext& context,
                     absl::Duration elapsed_time, int64_t bytes) override {
     absl::MutexLock l(&lock_);
@@ -265,9 +250,9 @@ class SmartRoundRobinChannelPool : public StorageStubProvider {
                     << ") due to error:" << status.error_code() << std::endl;
           *i = channel_creator_();
         }
-        return true;
+        return;
       } else {
-        return false;
+        return;
       }
     }
 
@@ -329,8 +314,6 @@ class SmartRoundRobinChannelPool : public StorageStubProvider {
         InitChannelStateMap();
       }
     }
-
-    return true;
   }
 
  private:

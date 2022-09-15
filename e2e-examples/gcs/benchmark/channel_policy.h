@@ -39,8 +39,7 @@ class StorageStubProvider {
   virtual StubHolder GetStorageStub() = 0;
 
   // Reports result
-  // - Returns if it's okay to keep going
-  virtual bool ReportResult(void* handle, const grpc::Status& status,
+  virtual void ReportResult(void* handle, const grpc::Status& status,
                             const grpc::ClientContext& context,
                             absl::Duration elapsed_time, int64_t bytes) = 0;
 };
