@@ -88,7 +88,7 @@ absl::Duration RunnerWatcher::GetNonWarmupsDuration() const {
   absl::Time end = operations[0].time + operations[0].elapsed_time;
   for (auto op : operations) {
     begin = std::min(begin, op.time);
-    end = std::min(begin, op.time) + op.elapsed_time;
+    end = std::max(begin, op.time) + op.elapsed_time;
   }
   return end - begin;
 }
