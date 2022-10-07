@@ -60,10 +60,11 @@ void RunnerWatcher::NotifyCompleted(OperationType operationType,
   if (verbose_) {
     auto sec = absl::ToDoubleSeconds(op.elapsed_time);
     printf(
-        "### %sCompleted: ord=%ld peer=%s bucket=%s object=%s bytes=%lld "
-        "elapsed=%.2fs%s\n",
-        ToOperationTypeString(operationType), ord, peer.c_str(), bucket.c_str(),
-        object.c_str(), (long long)bytes, sec,
+        "### %sCompleted: ord=%ld time=%s peer=%s bucket=%s object=%s "
+        "bytes=%lld elapsed=%.2fs%s\n",
+        ToOperationTypeString(operationType), ord,
+        absl::FormatTime(absl::RFC3339_sec, time, absl::UTCTimeZone()).c_str(),
+        peer.c_str(), bucket.c_str(), object.c_str(), (long long)bytes, sec,
         ord <= warmups_ ? " [WARM-UP]" : "");
     fflush(stdout);
   }
