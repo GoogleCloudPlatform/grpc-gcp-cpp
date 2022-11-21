@@ -66,6 +66,7 @@ ABSL_FLAG(std::string, network, "default", "Network path (default, cfe, dp)");
 ABSL_FLAG(bool, rr, false,
           "Use round_robin grpclb policy (otherwise pick_first)");
 ABSL_FLAG(bool, td, false, "Use Traffic Director");
+ABSL_FLAG(bool, tx_zerocopy, false, "Use TCP TX_ZEROCOPY");
 ABSL_FLAG(std::string, cpolicy, "perthread",
           "Channel Policy (perthread, percall, const, pool, bpool, spool)");
 ABSL_FLAG(
@@ -128,6 +129,7 @@ absl::optional<Parameters> GetParameters() {
   p.network = absl::GetFlag(FLAGS_network);
   p.rr = absl::GetFlag(FLAGS_rr);
   p.td = absl::GetFlag(FLAGS_td);
+  p.tx_zerocopy = absl::GetFlag(FLAGS_tx_zerocopy);
   p.cpolicy = absl::GetFlag(FLAGS_cpolicy);
   if (p.cpolicy != "perthread" && p.cpolicy != "percall" &&
       p.cpolicy != "const" && p.cpolicy != "pool" && p.cpolicy != "bpool" &&
