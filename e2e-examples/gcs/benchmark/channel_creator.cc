@@ -66,9 +66,24 @@ std::shared_ptr<grpc::Channel> CreateGrpcChannel(absl::string_view host,
       }
     }
 
+    // Use a local subchannel pool to avoid contention in gRPC.
+    channel_args.SetInt(GRPC_ARG_USE_LOCAL_SUBCHANNEL_POOL, 1);
+    // Effectively disable keepalive messages.
+    auto constexpr kDisableKeepaliveTime =
+        std::chrono::milliseconds(std::chrono::hours(24));
+    channel_args.SetInt(GRPC_ARG_KEEPALIVE_TIME_MS,
+                        static_cast<int>(kDisableKeepaliveTime.count()));
+    // Make gRPC set the TCP_USER_TIMEOUT socket option to a value that detects
+    // broken servers more quickly.
+    auto constexpr kKeepaliveTimeout =
+        std::chrono::milliseconds(std::chrono::seconds(30));
+    channel_args.SetInt(GRPC_ARG_KEEPALIVE_TIMEOUT_MS,
+                        static_cast<int>(kKeepaliveTimeout.count()));
+
     if (use_tx_zerocopy) {
       channel_args.SetInt(GRPC_ARG_TCP_TX_ZEROCOPY_ENABLED, 1);
     }
+
     if (channel_cred == nullptr) {
       channel_cred = grpc::GoogleDefaultCredentials();
     }
