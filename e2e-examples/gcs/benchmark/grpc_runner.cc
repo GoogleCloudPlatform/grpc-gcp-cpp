@@ -51,7 +51,8 @@ extern int run_ctest(
 static std::shared_ptr<grpc::Channel> CreateBenchmarkGrpcChannel(
     const Parameters& parameters) {
   return CreateGrpcChannel(parameters.host, parameters.access_token,
-                           parameters.network, parameters.rr, parameters.td);
+                           parameters.network, parameters.rr, parameters.td,
+                           parameters.tx_zerocopy);
 }
 
 static int32_t GetChannelId(void* stub_handle) {

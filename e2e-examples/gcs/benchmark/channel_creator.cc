@@ -24,7 +24,8 @@
 std::shared_ptr<grpc::Channel> CreateGrpcChannel(absl::string_view host,
                                                  absl::string_view access_token,
                                                  absl::string_view network,
-                                                 bool use_rr, bool use_td) {
+                                                 bool use_rr, bool use_td,
+                                                 bool use_tx_zerocopy) {
   std::string target = std::string(host);
   if (target.empty()) {
     target = "storage.googleapis.com";
@@ -65,6 +66,9 @@ std::shared_ptr<grpc::Channel> CreateGrpcChannel(absl::string_view host,
       }
     }
 
+    if (use_tx_zerocopy) {
+      channel_args.SetInt(GRPC_ARG_TCP_TX_ZEROCOPY_ENABLED, 1);
+    }
     if (channel_cred == nullptr) {
       channel_cred = grpc::GoogleDefaultCredentials();
     }

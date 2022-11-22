@@ -59,6 +59,7 @@ struct Parameters {
   std::string network;
   bool rr;
   bool td;
+  bool tx_zerocopy;
   std::string cpolicy;
   int carg;
   int ctest;
