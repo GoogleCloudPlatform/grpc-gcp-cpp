@@ -30,8 +30,8 @@ ChannelPoller::~ChannelPoller() {
       absl::MutexLock lock(&mu_);
       tmp_channel.swap(channel_);
     }
-    // Give a chance to ChannelPoller to run remaining events
-    // while shutting down this channel
+    // Give ChannelPoller a chance to handle remaining events
+    // while shutting down the channel.
     tmp_channel.reset();
     {
       absl::MutexLock lock(&mu_);
