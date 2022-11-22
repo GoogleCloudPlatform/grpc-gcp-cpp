@@ -25,10 +25,19 @@ ChannelPoller::ChannelPoller(std::shared_ptr<grpc::Channel> channel)
 
 ChannelPoller::~ChannelPoller() {
   {
-    absl::MutexLock lock(&mu_);
-    channel_.reset();
-    shutdown_ = true;
-    cq_.Shutdown();
+    std::shared_ptr<grpc::Channel> tmp_channel;
+    {
+      absl::MutexLock lock(&mu_);
+      tmp_channel.swap(channel_);
+    }
+    // Give a chance to ChannelPoller to run remaining events
+    // while shutting down this channel
+    tmp_channel.reset();
+    {
+      absl::MutexLock lock(&mu_);
+      shutdown_ = true;
+      cq_.Shutdown();
+    }
   }
   thread_->join();
 }
