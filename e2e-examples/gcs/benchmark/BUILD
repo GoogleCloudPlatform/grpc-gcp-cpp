@@ -70,6 +70,7 @@ cc_library(
     deps = [
         "object_resolver",
         "parameters",
+        "random_data",
         "runner",
         "runner_watcher",
         "//e2e-examples/gcs/crc32c",
@@ -94,6 +95,7 @@ cc_library(
         "channel_policy",
         "object_resolver",
         "parameters",
+        "random_data",
         "runner",
         "runner_watcher",
         "work_queue",
@@ -145,6 +147,20 @@ cc_library(
         "@com_google_absl//absl/flags:parse",
         "@com_google_absl//absl/strings:str_format",
     ],    
+)
+
+cc_library(
+    name = "random_data",
+    hdrs = [
+        "random_data.h",
+    ],
+    srcs = [
+        "random_data.cc",
+    ],
+    deps = [
+        "@com_google_absl//absl/strings:cord",
+        "@com_google_absl//absl/random",
+    ],
 )
 
 cc_library(
