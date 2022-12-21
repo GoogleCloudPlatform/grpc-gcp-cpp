@@ -18,9 +18,11 @@
 #include <thread>
 
 #include "absl/random/random.h"
+#include "absl/strings/cord.h"
 #include "absl/time/time.h"
 #include "google/cloud/storage/client.h"
 #include "google/cloud/storage/grpc_plugin.h"
+#include "e2e-examples/gcs/benchmark/random_data.h"
 
 GcscppRunner::GcscppRunner(Parameters parameters,
                            std::shared_ptr<RunnerWatcher> watcher)
@@ -197,21 +199,10 @@ bool GcscppRunner::DoRandomRead(int thread_id,
   return true;
 }
 
-static std::vector<char> GetRandomData(size_t size) {
-  std::vector<char> content(size);
-  int* const s = reinterpret_cast<int*>(&(*content.begin()));
-  int* const e = reinterpret_cast<int*>(&(*content.rbegin()));
-  for (int* c = s; c < e; c += 1) {
-    *c = rand();
-  }
-  return content;
-}
-
 bool GcscppRunner::DoWrite(int thread_id,
                            google::cloud::storage::Client storage_client) {
   const int64_t max_chunk_size =
       (parameters_.chunk_size < 0) ? 2097152 : parameters_.chunk_size;
-  const std::vector<char> content = GetRandomData(max_chunk_size);
 
   if (parameters_.object_stop > 0) {
     std::cerr << "write doesn't support object_stop" << std::endl;
@@ -238,7 +229,9 @@ bool GcscppRunner::DoWrite(int thread_id,
 
     for (int64_t o = 0; o < parameters_.write_size; o += max_chunk_size) {
       int64_t chunk_size = std::min(max_chunk_size, parameters_.write_size - o);
-      writer.write(content.data(), static_cast<std::streamsize>(chunk_size));
+
+      absl::Cord content = GetRandomData(chunk_size);
+      writer << content;
 
       RunnerWatcher::Chunk chunk = {absl::Now(), chunk_size};
       chunks.push_back(chunk);

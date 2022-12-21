@@ -35,6 +35,7 @@
 #include "channel_creator.h"
 #include "channel_policy.h"
 #include "e2e-examples/gcs/crc32c/crc32c.h"
+#include "e2e-examples/gcs/benchmark/random_data.h"
 #include "google/storage/v2/storage.grpc.pb.h"
 
 using ::google::storage::v2::Object;
@@ -369,21 +370,10 @@ bool GrpcRunner::DoRandomRead(
   return true;
 }
 
-static std::vector<char> GetRandomData(size_t size) {
-  std::vector<char> content(size);
-  int* const s = reinterpret_cast<int*>(&(*content.begin()));
-  int* const e = reinterpret_cast<int*>(&(*content.rbegin()));
-  for (int* c = s; c < e; c += 1) {
-    *c = rand();
-  }
-  return content;
-}
-
 bool GrpcRunner::DoWrite(
     int thread_id, std::shared_ptr<StorageStubProvider> storage_stub_provider) {
   const int64_t max_chunk_size =
       (parameters_.chunk_size < 0) ? 2097152 : parameters_.chunk_size;
-  const std::vector<char> content = GetRandomData(max_chunk_size);
 
   if (parameters_.object_stop > 0) {
     std::cerr << "write doesn't support object_stop" << std::endl;
@@ -457,15 +447,17 @@ bool GrpcRunner::DoWrite(
           }
         }
 
-        request.mutable_checksummed_data()->set_content(&content[0],
-                                                        chunk_size);
+        absl::Cord content = GetRandomData(chunk_size);
+        absl::CopyCordToString(content, request.mutable_checksummed_data()->mutable_content());
+        printf("xxx %d\n", request.mutable_checksummed_data()->mutable_content()->size());
         if (parameters_.crc32c) {
+          const char* buf = request.mutable_checksummed_data()->content().c_str();
           uint32_t crc32c =
-              crc32c_value((const uint8_t*)&content[0], chunk_size);
+              crc32c_value((const uint8_t*)buf, chunk_size);
           request.mutable_checksummed_data()->set_crc32c(crc32c);
 
           object_crc32c = crc32c_extend(
-              object_crc32c, (const uint8_t*)&content[0], chunk_size);
+              object_crc32c, (const uint8_t*)buf, chunk_size);
         }
 
         request.set_write_offset(o);
