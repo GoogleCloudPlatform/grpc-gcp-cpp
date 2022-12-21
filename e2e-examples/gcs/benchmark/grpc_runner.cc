@@ -449,7 +449,7 @@ bool GrpcRunner::DoWrite(
 
         absl::Cord content = GetRandomData(chunk_size);
         absl::CopyCordToString(content, request.mutable_checksummed_data()->mutable_content());
-        printf("xxx %d\n", request.mutable_checksummed_data()->mutable_content()->size());
+
         if (parameters_.crc32c) {
           const char* buf = request.mutable_checksummed_data()->content().c_str();
           uint32_t crc32c =
