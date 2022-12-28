@@ -48,6 +48,7 @@ struct Parameters {
   bool wait_threads;
   bool steal_work;
   bool verbose;
+  int grpc_admin;
 
   std::string report_tag;
   std::string report_file;

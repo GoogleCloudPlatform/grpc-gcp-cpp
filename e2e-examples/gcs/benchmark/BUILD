@@ -82,6 +82,21 @@ cc_library(
 )
 
 cc_library(
+    name = "grpc_admin",
+    hdrs = [
+        "grpc_admin.h",
+    ],
+    srcs = [
+        "grpc_admin.cc",
+    ],
+    deps = [
+        "@com_google_absl//absl/strings",
+        "@com_github_grpc_grpc//:grpc++",
+        "@com_github_grpc_grpc//:grpcpp_admin",
+    ],
+)
+
+cc_library(
     name = "grpc_runner",
     hdrs = [
         "grpc_runner.h",
@@ -215,6 +230,7 @@ cc_binary(
         "runner",
         "runner_watcher",
         "gcscpp_runner",
+        "grpc_admin",
         "grpc_runner",
         "@com_google_googleapis//google/storage/v2:storage_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",

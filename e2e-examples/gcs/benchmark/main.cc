@@ -22,6 +22,7 @@
 #include "channel_creator.h"
 #include "channel_policy.h"
 #include "gcscpp_runner.h"
+#include "grpc_admin.h"
 #include "grpc_runner.h"
 #include "parameters.h"
 #include "print_result.h"
@@ -35,6 +36,10 @@ int main(int argc, char **argv) {
   absl::optional<Parameters> parameters = GetParameters();
   if (!parameters.has_value()) {
     return 1;
+  }
+
+  if (parameters->grpc_admin > 0) {
+    StartGrpcAdmin(parameters->grpc_admin );
   }
 
   // Create a runner based on a client
@@ -59,6 +64,8 @@ int main(int argc, char **argv) {
     return 1;
   }
   watcher->SetDuration(absl::Now() - run_start);
+
+  StopGrpcAdmin();
 
   // Results
   PrintResult(*watcher);
