@@ -52,6 +52,7 @@ ABSL_FLAG(bool, wait_threads, false,
 ABSL_FLAG(bool, steal_work, false,
           "Whether worker threads can steal work from other threads ");
 ABSL_FLAG(bool, verbose, false, "Show debug output and progress updates");
+ABSL_FLAG(int, grpc_admin, 0, "Port for gRPC Admin");
 
 ABSL_FLAG(std::string, report_tag, "",
           "The user-defined tag to be inserted in the report");
@@ -120,6 +121,7 @@ absl::optional<Parameters> GetParameters() {
   p.wait_threads = absl::GetFlag(FLAGS_wait_threads);
   p.steal_work = absl::GetFlag(FLAGS_steal_work);
   p.verbose = absl::GetFlag(FLAGS_verbose);
+  p.grpc_admin = absl::GetFlag(FLAGS_grpc_admin);
   p.report_tag = absl::GetFlag(FLAGS_report_tag);
   p.report_file = absl::GetFlag(FLAGS_report_file);
   p.data_file = absl::GetFlag(FLAGS_data_file);
