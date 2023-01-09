@@ -38,10 +38,8 @@ void StartGrpcAdmin(int port) {
     builder.AddListeningPort(absl::StrCat("0.0.0.0:", port),
                              grpc::InsecureServerCredentials());
     g_admin_server = builder.BuildAndStart();
-    std::cerr << "Pre-wait" << std::endl;
     g_admin_server->Wait();
     g_admin_server = nullptr;
-    std::cerr << "Post-wait" << std::endl;
   }));
 }
 
