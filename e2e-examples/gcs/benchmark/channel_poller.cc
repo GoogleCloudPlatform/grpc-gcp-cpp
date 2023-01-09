@@ -44,7 +44,7 @@ ChannelPoller::~ChannelPoller() {
 
 void ChannelPoller::StartWatch() {
   if (channel_ != nullptr) {
-    grpc_connectivity_state last_observed = channel_->GetState(true);
+    grpc_connectivity_state last_observed = channel_->GetState(false);
     channel_->NotifyOnStateChange(last_observed,
                                   std::chrono::system_clock::time_point::max(),
                                   &cq_, nullptr);
