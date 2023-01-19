@@ -20,9 +20,10 @@
 #include "absl/random/random.h"
 #include "absl/strings/cord.h"
 #include "absl/time/time.h"
+#include "e2e-examples/gcs/benchmark/random_data.h"
+#include "google/cloud/grpc_options.h"
 #include "google/cloud/storage/client.h"
 #include "google/cloud/storage/grpc_plugin.h"
-#include "e2e-examples/gcs/benchmark/random_data.h"
 
 GcscppRunner::GcscppRunner(Parameters parameters,
                            std::shared_ptr<RunnerWatcher> watcher)
@@ -48,6 +49,9 @@ static google::cloud::storage::Client CreateClient(
     }
     if (parameters.td) {
       target = "google-c2p:///" + target;
+    }
+    if (parameters.carg != 0) {
+      opts.set<google::cloud::GrpcNumChannelsOption>(parameters.carg);
     }
     return ::google::cloud::storage_experimental::DefaultGrpcClient(
         opts.set<google::cloud::storage_experimental::GrpcPluginOption>("media")
