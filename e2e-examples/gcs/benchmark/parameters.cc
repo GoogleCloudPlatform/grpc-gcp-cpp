@@ -74,6 +74,7 @@ ABSL_FLAG(
     int, carg, 0,
     "Parameter for cpolicy (e.g. pool uses this as the number of channels)");
 ABSL_FLAG(int, ctest, 0, "Test to get a list of peers from grpclb");
+ABSL_FLAG(int, mtest, 0, "Test to get metadata");
 
 const char* ToOperationTypeString(OperationType operationType) {
   switch (operationType) {
@@ -141,5 +142,6 @@ absl::optional<Parameters> GetParameters() {
   }
   p.carg = absl::GetFlag(FLAGS_carg);
   p.ctest = absl::GetFlag(FLAGS_ctest);
+  p.mtest = absl::GetFlag(FLAGS_mtest);
   return p;
 }

@@ -102,8 +102,8 @@ cc_library(
         "grpc_runner.h",
     ],
     srcs = [
-        "ctest.cc",
         "grpc_runner.cc",
+        "grpc_xtra.cc",
     ],
     deps = [
         "channel_creator",
