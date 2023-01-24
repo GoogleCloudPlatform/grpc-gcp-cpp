@@ -34,8 +34,8 @@
 #include "absl/time/time.h"
 #include "channel_creator.h"
 #include "channel_policy.h"
-#include "e2e-examples/gcs/crc32c/crc32c.h"
 #include "e2e-examples/gcs/benchmark/random_data.h"
+#include "e2e-examples/gcs/crc32c/crc32c.h"
 #include "google/storage/v2/storage.grpc.pb.h"
 
 using ::google::storage::v2::Object;
@@ -47,9 +47,12 @@ using ::google::storage::v2::WriteObjectRequest;
 using ::google::storage::v2::WriteObjectResponse;
 
 extern int run_ctest(
-    std::function<std::shared_ptr<grpc::Channel>()> channel_creator, int size);
+    std::function<std::shared_ptr<grpc::Channel>()> channel_creator,
+    const Parameters& parameters);
+
 extern int run_mtest(
-    std::function<std::shared_ptr<grpc::Channel>()> channel_creator);
+    std::function<std::shared_ptr<grpc::Channel>()> channel_creator,
+    const Parameters& parameters);
 
 static std::shared_ptr<grpc::Channel> CreateBenchmarkGrpcChannel(
     const Parameters& parameters) {
@@ -99,10 +102,10 @@ bool GrpcRunner::Run() {
     return CreateBenchmarkGrpcChannel(parameters_);
   };
   if (parameters_.ctest > 0) {
-    return run_ctest(channel_creator, parameters_.ctest);
+    return run_ctest(channel_creator, parameters_);
   }
   if (parameters_.mtest > 0) {
-    return run_mtest(channel_creator);
+    return run_mtest(channel_creator, parameters_);
   }
 
   // Initializes a gRPC channel pool.
@@ -453,16 +456,17 @@ bool GrpcRunner::DoWrite(
         }
 
         absl::Cord content = GetRandomData(chunk_size);
-        absl::CopyCordToString(content, request.mutable_checksummed_data()->mutable_content());
+        absl::CopyCordToString(
+            content, request.mutable_checksummed_data()->mutable_content());
 
         if (parameters_.crc32c) {
-          const char* buf = request.mutable_checksummed_data()->content().c_str();
-          uint32_t crc32c =
-              crc32c_value((const uint8_t*)buf, chunk_size);
+          const char* buf =
+              request.mutable_checksummed_data()->content().c_str();
+          uint32_t crc32c = crc32c_value((const uint8_t*)buf, chunk_size);
           request.mutable_checksummed_data()->set_crc32c(crc32c);
 
-          object_crc32c = crc32c_extend(
-              object_crc32c, (const uint8_t*)buf, chunk_size);
+          object_crc32c =
+              crc32c_extend(object_crc32c, (const uint8_t*)buf, chunk_size);
         }
 
         request.set_write_offset(o);

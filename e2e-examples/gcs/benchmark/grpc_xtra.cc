@@ -23,17 +23,20 @@
 #include <vector>
 
 #include "absl/memory/memory.h"
-#include "src/proto/grpc/health/v1/health.grpc.pb.h"
+#include "absl/strings/str_cat.h"
 #include "google/storage/v2/storage.grpc.pb.h"
+#include "parameters.h"
+#include "src/proto/grpc/health/v1/health.grpc.pb.h"
 
 int run_ctest(std::function<std::shared_ptr<grpc::Channel>()> channel_creator,
-              int size) {
+              const Parameters& parameters) {
   struct ChannelState {
     std::shared_ptr<grpc::Channel> channel;
     std::unique_ptr<std::thread> thread;
     std::string peer;
   };
   std::vector<ChannelState> states;
+  const int size = parameters.ctest;
   for (int i = 0; i < size; i++) {
     states.push_back(ChannelState{channel_creator()});
   }
@@ -66,22 +69,27 @@ int run_ctest(std::function<std::shared_ptr<grpc::Channel>()> channel_creator,
   return 0;
 }
 
-int run_mtest(std::function<std::shared_ptr<grpc::Channel>()> channel_creator) {
+int run_mtest(std::function<std::shared_ptr<grpc::Channel>()> channel_creator,
+              const Parameters& parameters) {
   auto channel = channel_creator();
   auto stub = google::storage::v2::Storage::NewStub(channel);
 
   google::storage::v2::GetObjectRequest request;
-  request.set_bucket("a");
-  request.set_object("1KiB");
+  request.set_bucket(absl::StrCat("projects/_/buckets/", parameters.bucket));
+  request.set_object(parameters.object);
 
   grpc::ClientContext context;
   google::storage::v2::Object reply;
   grpc::Status status = stub->GetObject(&context, request, &reply);
 
-  std::cerr << "Status:" << std::endl;
-  std::cerr << "- Code:    " << status.error_code() << std::endl;
-  std::cerr << "- Message: " << status.error_message() << std::endl;
-  std::cerr << "- Details: " << status.error_details() << std::endl;
+  if (status.ok()) {
+    std::cerr << "Status: OK" << std::endl;
+  } else {
+    std::cerr << "Status:" << std::endl;
+    std::cerr << "- Code:    " << status.error_code() << std::endl;
+    std::cerr << "- Message: " << status.error_message() << std::endl;
+    std::cerr << "- Details: " << status.error_details() << std::endl;
+  }
 
   std::cerr << "ServerInitialMetadata:" << std::endl;
   auto imd = context.GetServerInitialMetadata();
@@ -89,7 +97,7 @@ int run_mtest(std::function<std::shared_ptr<grpc::Channel>()> channel_creator) {
     std::cerr << "- " << v.first << " = " << v.second << std::endl;
   }
 
-  std::cerr << "ServerInitialMetadata:" << std::endl;
+  std::cerr << "ServerTrailingMetadata:" << std::endl;
   auto tmd = context.GetServerTrailingMetadata();
   for (auto v : tmd) {
     std::cerr << "- " << v.first << " = " << v.second << std::endl;
