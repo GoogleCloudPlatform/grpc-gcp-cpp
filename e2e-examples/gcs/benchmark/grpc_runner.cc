@@ -48,6 +48,8 @@ using ::google::storage::v2::WriteObjectResponse;
 
 extern int run_ctest(
     std::function<std::shared_ptr<grpc::Channel>()> channel_creator, int size);
+extern int run_mtest(
+    std::function<std::shared_ptr<grpc::Channel>()> channel_creator);
 
 static std::shared_ptr<grpc::Channel> CreateBenchmarkGrpcChannel(
     const Parameters& parameters) {
@@ -98,6 +100,9 @@ bool GrpcRunner::Run() {
   };
   if (parameters_.ctest > 0) {
     return run_ctest(channel_creator, parameters_.ctest);
+  }
+  if (parameters_.mtest > 0) {
+    return run_mtest(channel_creator);
   }
 
   // Initializes a gRPC channel pool.

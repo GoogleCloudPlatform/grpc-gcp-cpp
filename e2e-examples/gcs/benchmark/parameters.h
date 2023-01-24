@@ -64,6 +64,7 @@ struct Parameters {
   std::string cpolicy;
   int carg;
   int ctest;
+  int mtest;
 };
 
 absl::optional<Parameters> GetParameters();

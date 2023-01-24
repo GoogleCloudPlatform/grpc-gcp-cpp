@@ -24,6 +24,7 @@
 
 #include "absl/memory/memory.h"
 #include "src/proto/grpc/health/v1/health.grpc.pb.h"
+#include "google/storage/v2/storage.grpc.pb.h"
 
 int run_ctest(std::function<std::shared_ptr<grpc::Channel>()> channel_creator,
               int size) {
@@ -62,5 +63,37 @@ int run_ctest(std::function<std::shared_ptr<grpc::Channel>()> channel_creator,
   for (const auto& p : peer_count_map) {
     std::cout << p.first << " -> " << p.second << " times." << std::endl;
   }
+  return 0;
+}
+
+int run_mtest(std::function<std::shared_ptr<grpc::Channel>()> channel_creator) {
+  auto channel = channel_creator();
+  auto stub = google::storage::v2::Storage::NewStub(channel);
+
+  google::storage::v2::GetObjectRequest request;
+  request.set_bucket("a");
+  request.set_object("1KiB");
+
+  grpc::ClientContext context;
+  google::storage::v2::Object reply;
+  grpc::Status status = stub->GetObject(&context, request, &reply);
+
+  std::cerr << "Status:" << std::endl;
+  std::cerr << "- Code:    " << status.error_code() << std::endl;
+  std::cerr << "- Message: " << status.error_message() << std::endl;
+  std::cerr << "- Details: " << status.error_details() << std::endl;
+
+  std::cerr << "ServerInitialMetadata:" << std::endl;
+  auto imd = context.GetServerInitialMetadata();
+  for (auto v : imd) {
+    std::cerr << "- " << v.first << " = " << v.second << std::endl;
+  }
+
+  std::cerr << "ServerInitialMetadata:" << std::endl;
+  auto tmd = context.GetServerTrailingMetadata();
+  for (auto v : tmd) {
+    std::cerr << "- " << v.first << " = " << v.second << std::endl;
+  }
+
   return 0;
 }
