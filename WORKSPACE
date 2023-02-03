@@ -11,9 +11,9 @@ http_archive(
 
 http_archive(
     name = "com_github_grpc_grpc",
-    sha256 = "7f42363711eb483a0501239fd5522467b31d8fe98d70d7867c6ca7b52440d828",
-    strip_prefix = "grpc-1.51.0",
-    url = "https://github.com/grpc/grpc/archive/v1.51.0.tar.gz",
+    sha256 = "df9608a5bd4eb6d6b78df75908bb3390efdbbb9e07eddbee325e98cdfad6acd5",
+    strip_prefix = "grpc-1.52.0",
+    url = "https://github.com/grpc/grpc/archive/v1.52.0.tar.gz",
 )
 
 http_archive(
