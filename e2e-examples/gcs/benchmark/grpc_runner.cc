@@ -180,7 +180,6 @@ bool GrpcRunner::DoOperation(
 
 bool GrpcRunner::DoRead(
     int thread_id, std::shared_ptr<StorageStubProvider> storage_stub_provider) {
-  std::tuple<int, int> work_queue;
   while (true) {
     auto work = work_queue_->pop(thread_id);
     auto work_tid = std::get<0>(work);
@@ -392,7 +391,6 @@ bool GrpcRunner::DoWrite(
     return false;
   }
 
-  std::tuple<int, int> work_queue;
   while (true) {
     auto work = work_queue_->pop(thread_id);
     auto work_tid = std::get<0>(work);

@@ -20,6 +20,7 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <sys/resource.h>
 
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
@@ -111,6 +112,17 @@ void PrintResult(const RunnerWatcher& watcher) {
              elapsed_time, operations.size(), total_bytes / kMB,
              total_bytes / kMB / elapsed_time)
       << std::endl;
+
+  // Resource usage
+
+  struct rusage ru;
+  if (getrusage(RUSAGE_SELF, &ru) == 0) {
+    std::cout << "Resource [ ";
+    std::cout << "utime: " << absl::DurationFromTimeval(ru.ru_utime) << " ";
+    std::cout << "sime: " << absl::DurationFromTimeval(ru.ru_stime) << " ";
+    std::cout << "maxrss: " << ru.ru_maxrss << "KB ";
+    std::cout << "]" << std::endl;
+  }
 
   // Percentile for each file
 
