@@ -14,13 +14,14 @@
 
 #include "print_result.h"
 
+#include <sys/resource.h>
+
 #include <fstream>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
-#include <sys/resource.h>
 
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
@@ -118,9 +119,13 @@ void PrintResult(const RunnerWatcher& watcher) {
   struct rusage ru;
   if (getrusage(RUSAGE_SELF, &ru) == 0) {
     std::cout << "Resource [ ";
-    std::cout << "utime: " << absl::DurationFromTimeval(ru.ru_utime) << " ";
-    std::cout << "sime: " << absl::DurationFromTimeval(ru.ru_stime) << " ";
-    std::cout << "maxrss: " << ru.ru_maxrss << "KB ";
+    std::cout << absl::StrFormat(
+        "utime: %.1fs ",
+        absl::ToDoubleSeconds(absl::DurationFromTimeval(ru.ru_utime)));
+    std::cout << absl::StrFormat(
+        "stime: %.1fs ",
+        absl::ToDoubleSeconds(absl::DurationFromTimeval(ru.ru_stime)));
+    std::cout << absl::StrFormat("maxrss: %.2fMB ", ru.ru_maxrss / 1024.0);
     std::cout << "]" << std::endl;
   }
 
