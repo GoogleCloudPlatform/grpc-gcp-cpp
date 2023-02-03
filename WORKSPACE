@@ -4,9 +4,9 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "com_google_absl",
-    sha256 = "91ac87d30cc6d79f9ab974c51874a704de9c2647c40f6932597329a282217ba8",
-    strip_prefix = "abseil-cpp-20220623.1",
-    url = "https://github.com/abseil/abseil-cpp/archive/20220623.1.tar.gz",
+    sha256 = "3ea49a7d97421b88a8c48a0de16c16048e17725c7ec0f1d3ea2683a2a75adc21",
+    strip_prefix = "abseil-cpp-20230125.0",
+    url = "https://github.com/abseil/abseil-cpp/archive/20230125.0.tar.gz",
 )
 
 http_archive(
@@ -26,9 +26,9 @@ http_archive(
 
 http_archive(
     name = "com_github_googleapis_google_cloud_cpp",
-    sha256 = "ac93ef722d08bfb220343bde2f633c7c11f15e34ec3ecd0a57dbd3ff729cc3a6",
-    strip_prefix = "google-cloud-cpp-2.5.0",
-    url = "https://github.com/googleapis/google-cloud-cpp/archive/v2.5.0.tar.gz",
+    sha256 = "23b8ad92efed546139550853bd1ead2b9dbd93320c8e793c29fcb3858a0c2f6c",
+    strip_prefix = "google-cloud-cpp-2.7.0",
+    url = "https://github.com/googleapis/google-cloud-cpp/archive/v2.7.0.tar.gz",
 )
 
 http_archive(
