@@ -36,11 +36,13 @@ static google::cloud::storage::Client CreateClient(
     const Parameters& parameters) {
   auto opts = google::cloud::Options{};
   if (parameters.write_size > 0) {
-    // Make a upload buffer big enough to make it done in a single rpc call.
-    std::size_t upload_buffer_size = std::min<std::size_t>(
-        128 * 1024 * 1024, (std::size_t)parameters.write_size);
+    // Make a upload buffer big enough to make it done in a single rpc call if
+    // chunk_size is not specified explicitly.
+    std::size_t upload_buffer_size =
+        (std::size_t)((parameters.chunk_size < 0) ? parameters.write_size
+                                                  : parameters.chunk_size);
     opts.set<google::cloud::storage::UploadBufferSizeOption>(
-        upload_buffer_size + 1);
+        upload_buffer_size);
   }
   if (parameters.client == "gcscpp-grpc") {
     std::string target = parameters.host;
@@ -205,8 +207,11 @@ bool GcscppRunner::DoRandomRead(int thread_id,
 
 bool GcscppRunner::DoWrite(int thread_id,
                            google::cloud::storage::Client storage_client) {
-  const int64_t max_chunk_size =
-      (parameters_.chunk_size < 0) ? 2097152 : parameters_.chunk_size;
+  const int64_t max_chunk_size = (parameters_.chunk_size < 0)
+                                     ? parameters_.write_size
+                                     : parameters_.chunk_size;
+  absl::Cord content = GetRandomData(max_chunk_size);
+  absl::string_view content_data = content.Flatten();
 
   if (parameters_.object_stop > 0) {
     std::cerr << "write doesn't support object_stop" << std::endl;
@@ -233,9 +238,7 @@ bool GcscppRunner::DoWrite(int thread_id,
 
     for (int64_t o = 0; o < parameters_.write_size; o += max_chunk_size) {
       int64_t chunk_size = std::min(max_chunk_size, parameters_.write_size - o);
-
-      absl::Cord content = GetRandomData(chunk_size);
-      writer << content;
+      writer.write(content_data.data(), chunk_size);
 
       RunnerWatcher::Chunk chunk = {absl::Now(), chunk_size};
       chunks.push_back(chunk);
