@@ -55,6 +55,12 @@ static google::cloud::storage::Client CreateClient(
     if (parameters.carg != 0) {
       opts.set<google::cloud::GrpcNumChannelsOption>(parameters.carg);
     }
+    if (parameters.tx_zerocopy) {
+      grpc::ChannelArguments channel_arguments;
+      channel_arguments.SetInt(GRPC_ARG_TCP_TX_ZEROCOPY_ENABLED, 1);
+      opts.set<google::cloud::GrpcChannelArgumentsNativeOption>(
+          channel_arguments);
+    }
     return ::google::cloud::storage_experimental::DefaultGrpcClient(
         opts.set<google::cloud::storage_experimental::GrpcPluginOption>("media")
             .set<google::cloud::EndpointOption>(target));
