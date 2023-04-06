@@ -452,9 +452,12 @@ bool GrpcRunner::DoWrite(
         }
 
         absl::Cord content = GetRandomData(chunk_size);
+#if GRPC_CORD_SUPPORT_ENABLED
+        request.mutable_checksummed_data()->set_content(content);
+#else
         absl::CopyCordToString(
             content, request.mutable_checksummed_data()->mutable_content());
-
+#endif
         if (parameters_.crc32c) {
           auto& content = request.mutable_checksummed_data()->content();
           auto crc32c = absl::ComputeCrc32c(content);
