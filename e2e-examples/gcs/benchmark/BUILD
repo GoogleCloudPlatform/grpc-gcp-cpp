@@ -73,7 +73,6 @@ cc_library(
         "random_data",
         "runner",
         "runner_watcher",
-        "//e2e-examples/gcs/crc32c",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
         "@com_github_googleapis_google_cloud_cpp//:storage",
@@ -117,9 +116,9 @@ cc_library(
         "@com_google_googleapis//google/storage/v2:storage_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",
         "@com_github_grpc_grpc//src/proto/grpc/health/v1:health_proto",
+        "@com_google_absl//absl/crc:crc32c",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
-        "//e2e-examples/gcs/crc32c",
     ],
 )
 
@@ -212,7 +211,6 @@ cc_library(
         "@com_github_grpc_grpc//:grpc++",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
-        "//e2e-examples/gcs/crc32c",
     ],
 )
 

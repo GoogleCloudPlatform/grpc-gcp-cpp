@@ -25,6 +25,7 @@
 #include <functional>
 #include <thread>
 
+#include "absl/crc/crc32c.h"
 #include "absl/random/random.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
@@ -35,7 +36,6 @@
 #include "channel_creator.h"
 #include "channel_policy.h"
 #include "e2e-examples/gcs/benchmark/random_data.h"
-#include "e2e-examples/gcs/crc32c/crc32c.h"
 #include "google/storage/v2/storage.grpc.pb.h"
 
 using ::google::storage::v2::Object;
@@ -218,8 +218,7 @@ bool GrpcRunner::DoRead(
 
         if (parameters_.crc32c) {
           uint32_t content_crc = response.checksummed_data().crc32c();
-          uint32_t calculated_crc =
-              crc32c_value((const uint8_t*)content.c_str(), content_size);
+          uint32_t calculated_crc = (uint32_t)absl::ComputeCrc32c(content);
           if (content_crc != calculated_crc) {
             std::cerr << "CRC32 is not identical. " << content_crc << " vs "
                       << calculated_crc << std::endl;
@@ -324,8 +323,7 @@ bool GrpcRunner::DoRandomRead(
 
       if (parameters_.crc32c) {
         uint32_t content_crc = response.checksummed_data().crc32c();
-        uint32_t calculated_crc =
-            crc32c_value((const uint8_t*)content.c_str(), content_size);
+        uint32_t calculated_crc = (uint32_t)absl::ComputeCrc32c(content);
         if (content_crc != calculated_crc) {
           std::cerr << "CRC32 is not identical. " << content_crc << " vs "
                     << calculated_crc << std::endl;
@@ -403,7 +401,7 @@ bool GrpcRunner::DoWrite(
 
       std::string object = object_resolver_.Resolve(work_tid, work_run);
       absl::Time run_start = absl::Now();
-      uint32_t object_crc32c = 0;
+      absl::crc32c_t object_crc32c(0);
 
       std::string upload_id;
       if (parameters_.resumable) {
@@ -458,20 +456,18 @@ bool GrpcRunner::DoWrite(
             content, request.mutable_checksummed_data()->mutable_content());
 
         if (parameters_.crc32c) {
-          const char* buf =
-              request.mutable_checksummed_data()->content().c_str();
-          uint32_t crc32c = crc32c_value((const uint8_t*)buf, chunk_size);
-          request.mutable_checksummed_data()->set_crc32c(crc32c);
-
-          object_crc32c =
-              crc32c_extend(object_crc32c, (const uint8_t*)buf, chunk_size);
+          auto& content = request.mutable_checksummed_data()->content();
+          auto crc32c = absl::ComputeCrc32c(content);
+          request.mutable_checksummed_data()->set_crc32c((uint32_t)crc32c);
+          object_crc32c = absl::ExtendCrc32c(object_crc32c, content);
         }
 
         request.set_write_offset(o);
         if (last_request) {
           request.set_finish_write(true);
           if (parameters_.crc32c) {
-            request.mutable_object_checksums()->set_crc32c(object_crc32c);
+            request.mutable_object_checksums()->set_crc32c(
+                (uint32_t)object_crc32c);
           }
         }
 
