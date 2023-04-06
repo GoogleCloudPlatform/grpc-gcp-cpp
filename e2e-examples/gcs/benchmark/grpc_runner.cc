@@ -90,6 +90,41 @@ static void ApplyCallTimeout(grpc::ClientContext* context,
   }
 }
 
+namespace {
+
+absl::crc32c_t ExtendCrc32c(absl::crc32c_t initial_crc,
+                            absl::string_view buf_to_add) {
+  return absl::ExtendCrc32c(initial_crc, buf_to_add);
+}
+
+absl::crc32c_t ExtendCrc32c(absl::crc32c_t initial_crc,
+                            const std::string& buf_to_add) {
+  return absl::ExtendCrc32c(initial_crc, absl::string_view(buf_to_add));
+}
+
+absl::crc32c_t ExtendCrc32c(absl::crc32c_t initial_crc,
+                            const absl::Cord& cord_to_add) {
+  absl::crc32c_t crc = initial_crc;
+  for (absl::string_view chunk : cord_to_add.Chunks()) {
+    crc = absl::ExtendCrc32c(crc, chunk);
+  }
+  return crc;
+}
+
+absl::crc32c_t ComputeCrc32c(absl::string_view buf) {
+  return absl::ComputeCrc32c(buf);
+}
+
+absl::crc32c_t ComputeCrc32c(const std::string& buf) {
+  return absl::ComputeCrc32c(absl::string_view(buf));
+}
+
+absl::crc32c_t ComputeCrc32c(const absl::Cord& cord) {
+  return ExtendCrc32c(absl::crc32c_t(0), cord);
+}
+
+}  // namespace
+
 GrpcRunner::GrpcRunner(Parameters parameters,
                        std::shared_ptr<RunnerWatcher> watcher)
     : parameters_(parameters),
@@ -218,7 +253,7 @@ bool GrpcRunner::DoRead(
 
         if (parameters_.crc32c) {
           uint32_t content_crc = response.checksummed_data().crc32c();
-          uint32_t calculated_crc = (uint32_t)absl::ComputeCrc32c(content);
+          uint32_t calculated_crc = (uint32_t)ComputeCrc32c(content);
           if (content_crc != calculated_crc) {
             std::cerr << "CRC32 is not identical. " << content_crc << " vs "
                       << calculated_crc << std::endl;
@@ -323,7 +358,7 @@ bool GrpcRunner::DoRandomRead(
 
       if (parameters_.crc32c) {
         uint32_t content_crc = response.checksummed_data().crc32c();
-        uint32_t calculated_crc = (uint32_t)absl::ComputeCrc32c(content);
+        uint32_t calculated_crc = (uint32_t)ComputeCrc32c(content);
         if (content_crc != calculated_crc) {
           std::cerr << "CRC32 is not identical. " << content_crc << " vs "
                     << calculated_crc << std::endl;
@@ -460,9 +495,9 @@ bool GrpcRunner::DoWrite(
 #endif
         if (parameters_.crc32c) {
           auto& content = request.mutable_checksummed_data()->content();
-          auto crc32c = absl::ComputeCrc32c(content);
+          auto crc32c = ComputeCrc32c(content);
           request.mutable_checksummed_data()->set_crc32c((uint32_t)crc32c);
-          object_crc32c = absl::ExtendCrc32c(object_crc32c, content);
+          object_crc32c = ExtendCrc32c(object_crc32c, content);
         }
 
         request.set_write_offset(o);
