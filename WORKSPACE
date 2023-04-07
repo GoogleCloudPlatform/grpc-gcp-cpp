@@ -4,16 +4,16 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "com_google_absl",
-    sha256 = "3ea49a7d97421b88a8c48a0de16c16048e17725c7ec0f1d3ea2683a2a75adc21",
-    strip_prefix = "abseil-cpp-20230125.0",
-    url = "https://github.com/abseil/abseil-cpp/archive/20230125.0.tar.gz",
+    sha256 = "9a2b5752d7bfade0bdeee2701de17c9480620f8b237e1964c1b9967c75374906",
+    strip_prefix = "abseil-cpp-20230125.2",
+    url = "https://github.com/abseil/abseil-cpp/archive/20230125.2.tar.gz",
 )
 
 http_archive(
     name = "com_github_grpc_grpc",
-    sha256 = "df9608a5bd4eb6d6b78df75908bb3390efdbbb9e07eddbee325e98cdfad6acd5",
-    strip_prefix = "grpc-1.52.0",
-    url = "https://github.com/grpc/grpc/archive/v1.52.0.tar.gz",
+    sha256 = "9717ffc52120861136e478155c2ff3a9c21740e2244de52fa966f376d7471adf",
+    strip_prefix = "grpc-1.53.0",
+    url = "https://github.com/grpc/grpc/archive/v1.53.0.tar.gz",
 )
 
 http_archive(
@@ -26,9 +26,9 @@ http_archive(
 
 http_archive(
     name = "com_github_googleapis_google_cloud_cpp",
-    sha256 = "21fb441b5a670a18bb16b6826be8e0530888d0b94320847c538d46f5a54dddbc",
-    strip_prefix = "google-cloud-cpp-2.8.0",
-    url = "https://github.com/googleapis/google-cloud-cpp/archive/v2.8.0.tar.gz",
+    sha256 = "640fd1d0e1136b323985b9fd472d52619796c0c76a7b6a4d561ba4132539295c",
+    strip_prefix = "google-cloud-cpp-2.9.0",
+    url = "https://github.com/googleapis/google-cloud-cpp/archive/v2.9.0.tar.gz",
 )
 
 http_archive(
