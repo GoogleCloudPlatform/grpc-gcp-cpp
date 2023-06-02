@@ -68,15 +68,16 @@ ABSL_FLAG(bool, rr, false,
           "Use round_robin grpclb policy (otherwise pick_first)");
 ABSL_FLAG(bool, td, false, "Use Traffic Director");
 ABSL_FLAG(bool, tx_zerocopy, false, "Use TCP TX_ZEROCOPY");
-ABSL_FLAG(std::string, cpolicy, "perthread",
-          "Channel Policy (perthread, percall, const, pool, bpool, spool)");
+ABSL_FLAG(std::string, cpolicy, "",
+          "Channel Policy (perthread, percall, const, pool, bpool, spool) "
+          "Default: const if TD is true else perthread");
 ABSL_FLAG(
     int, carg, 0,
     "Parameter for cpolicy (e.g. pool uses this as the number of channels)");
 ABSL_FLAG(int, ctest, 0, "Test to get a list of peers from grpclb");
 ABSL_FLAG(int, mtest, 0, "Test to get metadata");
 
-const char* ToOperationTypeString(OperationType operationType) {
+const char *ToOperationTypeString(OperationType operationType) {
   switch (operationType) {
     case OperationType::Read:
       return "Read";
@@ -134,6 +135,9 @@ absl::optional<Parameters> GetParameters() {
   p.td = absl::GetFlag(FLAGS_td);
   p.tx_zerocopy = absl::GetFlag(FLAGS_tx_zerocopy);
   p.cpolicy = absl::GetFlag(FLAGS_cpolicy);
+  if (p.cpolicy == "") {
+    p.cpolicy = p.td ? "const" : "perthread";
+  }
   if (p.cpolicy != "perthread" && p.cpolicy != "percall" &&
       p.cpolicy != "const" && p.cpolicy != "pool" && p.cpolicy != "bpool" &&
       p.cpolicy != "spool") {
