@@ -85,7 +85,12 @@ bool GcscppRunner::Run() {
   for (int i = 1; i <= parameters_.threads; i++) {
     int thread_id = i;
     threads.emplace_back([thread_id, client, &returns, this]() {
-      returns[thread_id - 1] = this->DoOperation(thread_id, client);
+      bool r = this->DoOperation(thread_id, client);
+      if (!r && !parameters_.wait_threads) {
+        std::cerr << "Thread id=" << thread_id << " stopped." << std::endl;
+        exit(1);
+      }
+      returns[thread_id - 1] = r;
     });
   }
   std::for_each(threads.begin(), threads.end(),
