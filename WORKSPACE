@@ -11,24 +11,24 @@ http_archive(
 
 http_archive(
     name = "com_github_grpc_grpc",
-    sha256 = "9cf1a69a921534ac0b760dcbefb900f3c2f735f56070bf0536506913bb5bfd74",
-    strip_prefix = "grpc-1.55.0",
-    url = "https://github.com/grpc/grpc/archive/v1.55.0.tar.gz",
+    sha256 = "e034992a0b464042021f6d440f2090acc2422c103a322b0844e3921ccea981dc",
+    strip_prefix = "grpc-1.56.0",
+    url = "https://github.com/grpc/grpc/archive/v1.56.0.tar.gz",
 )
 
 http_archive(
     name = "com_google_googleapis",
-    sha256 = "8d0476bf689d25c212744f38646d44a41ff36282722bb92160f536d9377aba3b",
-    strip_prefix = "googleapis-117be9dfdf65ff766a794c8b85d5d7480a1fd83d",
-    url = "https://github.com/googleapis/googleapis/archive/117be9dfdf65ff766a794c8b85d5d7480a1fd83d.tar.gz",
+    sha256 = "edc901180a3ebdd4b3b3086e7df2ca71f947433ebeb827796447c57491fb334e",
+    strip_prefix = "googleapis-a3f983b38c357a1e7a7810d9ad795756b77d4332",
+    url = "https://github.com/googleapis/googleapis/archive/a3f983b38c357a1e7a7810d9ad795756b77d4332.tar.gz",
     build_file = "@com_github_googleapis_google_cloud_cpp//bazel:googleapis.BUILD",
 )
 
 http_archive(
     name = "com_github_googleapis_google_cloud_cpp",
-    sha256 = "a302ad006496a841f6aaca66a702714bf50ca6e71718193dcf58e0e8a70df561",
-    strip_prefix = "google-cloud-cpp-2.11.0",
-    url = "https://github.com/googleapis/google-cloud-cpp/archive/v2.11.0.tar.gz",
+    sha256 = "8cda870803925c62de8716a765e03eb9d34249977e5cdb7d0d20367e997a55e2",
+    strip_prefix = "google-cloud-cpp-2.12.0",
+    url = "https://github.com/googleapis/google-cloud-cpp/archive/v2.12.0.tar.gz",
 )
 
 http_archive(
