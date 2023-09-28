@@ -81,6 +81,12 @@ static std::string ToV2BucketName(absl::string_view bucket_name) {
   return absl::StrCat(V2_BUCKET_NAME_PREFIX, bucket_name);
 }
 
+static void ApplyRoutingHeaders(grpc::ClientContext* context,
+                                absl::string_view bucket_name) {
+  context->AddMetadata("x-goog-request-params",
+                       "bucket=" + ToV2BucketName(bucket_name));
+}
+
 static void ApplyCallTimeout(grpc::ClientContext* context,
                              absl::Duration timeout) {
   if (timeout != absl::InfiniteDuration()) {
@@ -91,17 +97,6 @@ static void ApplyCallTimeout(grpc::ClientContext* context,
 }
 
 namespace {
-
-// These are adapter functions to support various string_view like types
-// such as std::string and absl::Cord.
-
-absl::crc32c_t ComputeCrc32c(absl::string_view buf) {
-  return absl::ComputeCrc32c(buf);
-}
-
-absl::crc32c_t ComputeCrc32c(const std::string& buf) {
-  return absl::ComputeCrc32c(absl::string_view(buf));
-}
 
 absl::crc32c_t ComputeCrc32c(const absl::Cord& cord) {
   absl::crc32c_t crc(0);
@@ -227,6 +222,7 @@ bool GrpcRunner::DoRead(
       absl::Time run_start = absl::Now();
       grpc::ClientContext context;
       ApplyCallTimeout(&context, parameters_.timeout);
+      ApplyRoutingHeaders(&context, parameters_.bucket);
       std::unique_ptr<grpc::ClientReader<ReadObjectResponse>> reader =
           storage.stub->ReadObject(&context, request);
 
@@ -331,6 +327,7 @@ bool GrpcRunner::DoRandomRead(
 
     absl::Time run_start = absl::Now();
     grpc::ClientContext context;
+    ApplyRoutingHeaders(&context, parameters_.bucket);
     ApplyCallTimeout(&context, parameters_.timeout);
     std::unique_ptr<grpc::ClientReader<ReadObjectResponse>> reader =
         storage.stub->ReadObject(&context, request);
@@ -429,6 +426,7 @@ bool GrpcRunner::DoWrite(
       std::string upload_id;
       if (parameters_.resumable) {
         grpc::ClientContext context;
+        ApplyRoutingHeaders(&context, parameters_.bucket);
         ApplyCallTimeout(&context, parameters_.timeout);
         StartResumableWriteRequest start_request;
         auto resource =
@@ -447,6 +445,7 @@ bool GrpcRunner::DoWrite(
       }
 
       grpc::ClientContext context;
+      ApplyRoutingHeaders(&context, parameters_.bucket);
       ApplyCallTimeout(&context, parameters_.timeout);
       WriteObjectResponse reply;
       std::unique_ptr<grpc::ClientWriter<WriteObjectRequest>> writer(
