@@ -81,6 +81,12 @@ static std::string ToV2BucketName(absl::string_view bucket_name) {
   return absl::StrCat(V2_BUCKET_NAME_PREFIX, bucket_name);
 }
 
+static void ApplyRoutingHeaders(grpc::ClientContext& context,
+                                absl::string_view bucket_name) {
+  context.AddMetadata("x-goog-request-params",
+                      "bucket=" + ToV2BucketName(bucket_name));
+}
+
 static void ApplyCallTimeout(grpc::ClientContext* context,
                              absl::Duration timeout) {
   if (timeout != absl::InfiniteDuration()) {
@@ -227,6 +233,7 @@ bool GrpcRunner::DoRead(
       absl::Time run_start = absl::Now();
       grpc::ClientContext context;
       ApplyCallTimeout(&context, parameters_.timeout);
+      ApplyRoutingHeaders(&context, parameters_.bucket);
       std::unique_ptr<grpc::ClientReader<ReadObjectResponse>> reader =
           storage.stub->ReadObject(&context, request);
 
