@@ -81,10 +81,10 @@ static std::string ToV2BucketName(absl::string_view bucket_name) {
   return absl::StrCat(V2_BUCKET_NAME_PREFIX, bucket_name);
 }
 
-static void ApplyRoutingHeaders(grpc::ClientContext& context,
+static void ApplyRoutingHeaders(grpc::ClientContext* context,
                                 absl::string_view bucket_name) {
-  context.AddMetadata("x-goog-request-params",
-                      "bucket=" + ToV2BucketName(bucket_name));
+  context->AddMetadata("x-goog-request-params",
+                       "bucket=" + ToV2BucketName(bucket_name));
 }
 
 static void ApplyCallTimeout(grpc::ClientContext* context,
