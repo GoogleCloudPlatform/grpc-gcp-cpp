@@ -98,17 +98,6 @@ static void ApplyCallTimeout(grpc::ClientContext* context,
 
 namespace {
 
-// These are adapter functions to support various string_view like types
-// such as std::string and absl::Cord.
-
-absl::crc32c_t ComputeCrc32c(absl::string_view buf) {
-  return absl::ComputeCrc32c(buf);
-}
-
-absl::crc32c_t ComputeCrc32c(const std::string& buf) {
-  return absl::ComputeCrc32c(absl::string_view(buf));
-}
-
 absl::crc32c_t ComputeCrc32c(const absl::Cord& cord) {
   absl::crc32c_t crc(0);
   for (absl::string_view chunk : cord.Chunks()) {
