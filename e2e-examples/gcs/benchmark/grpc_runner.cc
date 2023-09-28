@@ -327,6 +327,7 @@ bool GrpcRunner::DoRandomRead(
 
     absl::Time run_start = absl::Now();
     grpc::ClientContext context;
+    ApplyRoutingHeaders(&context, parameters_.bucket);
     ApplyCallTimeout(&context, parameters_.timeout);
     std::unique_ptr<grpc::ClientReader<ReadObjectResponse>> reader =
         storage.stub->ReadObject(&context, request);
@@ -425,6 +426,7 @@ bool GrpcRunner::DoWrite(
       std::string upload_id;
       if (parameters_.resumable) {
         grpc::ClientContext context;
+        ApplyRoutingHeaders(&context, parameters_.bucket);
         ApplyCallTimeout(&context, parameters_.timeout);
         StartResumableWriteRequest start_request;
         auto resource =
@@ -443,6 +445,7 @@ bool GrpcRunner::DoWrite(
       }
 
       grpc::ClientContext context;
+      ApplyRoutingHeaders(&context, parameters_.bucket);
       ApplyCallTimeout(&context, parameters_.timeout);
       WriteObjectResponse reply;
       std::unique_ptr<grpc::ClientWriter<WriteObjectRequest>> writer(
