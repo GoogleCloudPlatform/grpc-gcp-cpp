@@ -9,7 +9,7 @@ Execute this command from the root directory of this repository.
 
 ```
 export IMAGE_NAME=us-docker.pkg.dev/grpc-testing/testing-images-public/grpc-gcp-cpp-gcs-benchmark
-export IMAGE_VERSION=20231102.0
+export IMAGE_VERSION=20231103.0
 docker build -t $IMAGE_NAME:$IMAGE_VERSION -f e2e-examples/gcs/benchmark_docker/Dockerfile .
 docker push $IMAGE_NAME:$IMAGE_VERSION
 ```
