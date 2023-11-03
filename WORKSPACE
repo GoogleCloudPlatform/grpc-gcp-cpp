@@ -4,31 +4,31 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "com_google_absl",
-    sha256 = "5366d7e7fa7ba0d915014d387b66d0d002c03236448e1ba9ef98122c13b35c36",
-    strip_prefix = "abseil-cpp-20230125.3",
-    url = "https://github.com/abseil/abseil-cpp/archive/20230125.3.tar.gz",
+    sha256 = "987ce98f02eefbaf930d6e38ab16aa05737234d7afbab2d5c4ea7adbe50c28ed",
+    strip_prefix = "abseil-cpp-20230802.1",
+    url = "https://github.com/abseil/abseil-cpp/archive/20230802.1.tar.gz",
 )
 
 http_archive(
     name = "com_github_grpc_grpc",
-    sha256 = "8393767af531b2d0549a4c26cf8ba1f665b16c16fb6c9238a7755e45444881dd",
-    strip_prefix = "grpc-1.57.0",
-    url = "https://github.com/grpc/grpc/archive/v1.57.0.tar.gz",
+    sha256 = "a3a65f0129c4922c5d7f4c11dcd40083a12ca54076fd3a927bcd63c53b7e44a5",
+    strip_prefix = "grpc-1.59.2",
+    url = "https://github.com/grpc/grpc/archive/v1.59.2.tar.gz",
 )
 
 http_archive(
     name = "com_google_googleapis",
-    sha256 = "b15cee2e21e26e8ef31c55881af249baf24b1df63f691368d788989c14c18570",
-    strip_prefix = "googleapis-6a6fd29a79fe2846001d90d93e79a19fcc303b85",
-    url = "https://github.com/googleapis/googleapis/archive/6a6fd29a79fe2846001d90d93e79a19fcc303b85.tar.gz",
+    sha256 = "f192fc1ff3bccf8a02fd1f9115d01d154aab875da43276d55989fca65fbb07c8",
+    strip_prefix = "googleapis-4a94b9e4403f958f65077f43863302c4ba4597da",
+    url = "https://github.com/googleapis/googleapis/archive/4a94b9e4403f958f65077f43863302c4ba4597da.tar.gz",
     build_file = "@com_github_googleapis_google_cloud_cpp//bazel:googleapis.BUILD",
 )
 
 http_archive(
     name = "com_github_googleapis_google_cloud_cpp",
-    sha256 = "47a5c6beff48625fa1b65b1ddc575247def80c88d29062c66d463172280d3959",
-    strip_prefix = "google-cloud-cpp-2.15.1",
-    url = "https://github.com/googleapis/google-cloud-cpp/archive/v2.15.1.tar.gz",
+    sha256 = "374efd3d85144f373cc8efcaea30712c0b1afacfc35574e2f4fd512360fd3d01",
+    strip_prefix = "google-cloud-cpp-2.18.0",
+    url = "https://github.com/googleapis/google-cloud-cpp/archive/v2.18.0.tar.gz",
 )
 
 http_archive(

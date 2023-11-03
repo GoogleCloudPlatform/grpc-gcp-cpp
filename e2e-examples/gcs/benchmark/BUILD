@@ -76,7 +76,7 @@ cc_library(
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
         "@com_github_googleapis_google_cloud_cpp//:storage",
-        "@com_github_googleapis_google_cloud_cpp//:experimental-storage-grpc",
+        "@com_github_googleapis_google_cloud_cpp//:experimental-storage_grpc",
     ],
 )
 
