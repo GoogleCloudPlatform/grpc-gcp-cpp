@@ -14,19 +14,19 @@
 
 FROM debian:stable
 
-## Install JDK
-RUN apt update && apt -y install curl default-jdk
+## Install GCC
+RUN apt update && apt -y install build-essential wget
 
 ## Install Bazel
-RUN apt-get install -y gnupg2
-RUN curl https://bazel.build/bazel-release.pub.gpg | apt-key add -
-RUN echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.8" | tee /etc/apt/sources.list.d/bazel.list
-RUN apt update && apt -y install bazel
+RUN wget https://github.com/bazelbuild/bazelisk/releases/download/v1.18.0/bazelisk-linux-amd64 && \
+    chmod +x bazelisk-linux-amd64 && \
+    mv bazelisk-linux-amd64 /usr/local/bin/bazel
 
 # Copy source and build gcs-benchmark
 COPY ./ /work
 RUN cd /work && bazel build -c opt e2e-examples/gcs/benchmark:benchmark
 
+# Creating a new slim docker with the benchmark binary only
 FROM debian:stable-slim
 RUN apt update && apt -y install ca-certificates
 COPY --from=0 /work/bazel-bin/e2e-examples/gcs/benchmark/benchmark /
