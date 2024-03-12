@@ -1,2 +1,7 @@
+# Bazel 7 begins to enable module by default which breaks gRPC build.
+# Therefore, this option is disabled until gRPC works with bzlmod.
+common --enable_bzlmod=false
+
+# gRPC C++ requires C++14 or higher
 build --cxxopt='-std=c++14'
 build --host_cxxopt='-std=c++14'
