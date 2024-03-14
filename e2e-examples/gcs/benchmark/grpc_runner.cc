@@ -258,7 +258,7 @@ bool GrpcRunner::DoRead(
         std::cerr << "Peer:   " << context.peer() << std::endl;
         std::cerr << "Start:  " << run_start << std::endl;
         std::cerr << "End:    " << run_end << std::endl;
-        std::cerr << "Elased: " << (run_end - run_start) << std::endl;
+        std::cerr << "Elapsed: " << (run_end - run_start) << std::endl;
         std::cerr << "Bucket: " << parameters_.bucket.c_str() << std::endl;
         std::cerr << "Object: " << object.c_str() << std::endl;
         std::cerr << "Bytes:  " << total_bytes << std::endl;
@@ -364,7 +364,7 @@ bool GrpcRunner::DoRandomRead(
       std::cerr << "Peer:   " << context.peer() << std::endl;
       std::cerr << "Start:  " << run_start << std::endl;
       std::cerr << "End:    " << run_end << std::endl;
-      std::cerr << "Elased: " << (run_end - run_start) << std::endl;
+      std::cerr << "Elapsed: " << (run_end - run_start) << std::endl;
       std::cerr << "Bucket: " << parameters_.bucket.c_str() << std::endl;
       std::cerr << "Object: " << object.c_str() << std::endl;
       std::cerr << "Bytes:  " << total_bytes << std::endl;
@@ -509,7 +509,7 @@ bool GrpcRunner::DoWrite(
         std::cerr << "Peer:   " << context.peer() << std::endl;
         std::cerr << "Start:  " << run_start << std::endl;
         std::cerr << "End:    " << run_end << std::endl;
-        std::cerr << "Elased: " << (run_end - run_start) << std::endl;
+        std::cerr << "Elapsed: " << (run_end - run_start) << std::endl;
         std::cerr << "Bucket: " << parameters_.bucket.c_str() << std::endl;
         std::cerr << "Object: " << object.c_str() << std::endl;
         std::cerr << "Bytes:  " << total_bytes << std::endl;
