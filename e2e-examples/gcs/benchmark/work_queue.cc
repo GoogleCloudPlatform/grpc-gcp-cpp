@@ -29,7 +29,7 @@ std::tuple<int, int> WorkQueue::pop(int thread_id) {
 
   absl::MutexLock l(&mu_);
 
-  // Pop the next work if the current thread stil has remaining works
+  // Pop the next work if the current thread still has remaining works
   int& cur_thread_work = thread_works_[thread_id - 1];
   if (cur_thread_work < work_count_per_thread_) {
     cur_thread_work += 1;
