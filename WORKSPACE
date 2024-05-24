@@ -4,31 +4,31 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "com_google_absl",
-    sha256 = "3c743204df78366ad2eaf236d6631d83f6bc928d1705dd0000b872e53b73dc6a",
-    strip_prefix = "abseil-cpp-20240116.1",
-    url = "https://github.com/abseil/abseil-cpp/archive/20240116.1.tar.gz",
+    sha256 = "733726b8c3a6d39a4120d7e45ea8b41a434cdacde401cba500f14236c49b39dc",
+    strip_prefix = "abseil-cpp-20240116.2",
+    url = "https://github.com/abseil/abseil-cpp/archive/20240116.2.tar.gz",
 )
 
 http_archive(
     name = "com_github_grpc_grpc",
-    sha256 = "c9f9ae6e4d6f40464ee9958be4068087881ed6aa37e30d0e64d40ed7be39dd01",
-    strip_prefix = "grpc-1.62.1",
-    url = "https://github.com/grpc/grpc/archive/v1.62.1.tar.gz",
+    sha256 = "d5509e40fb24f6390deeef8a88668124f4ec77d2ebb3b1a957b235a2f08b70c0",
+    strip_prefix = "grpc-1.64.0",
+    url = "https://github.com/grpc/grpc/archive/v1.64.0.tar.gz",
 )
 
 http_archive(
     name = "com_google_googleapis",
-    sha256 = "c88131915fe4510280af0296974ba6c31ccd5d0fa7cbe242baa43d894abbae53",
-    strip_prefix = "googleapis-9868a57470a969ffa1d21194a5c05d7a6e4e98cc",
-    url = "https://github.com/googleapis/googleapis/archive/9868a57470a969ffa1d21194a5c05d7a6e4e98cc.tar.gz",
-    build_file = "@com_github_googleapis_google_cloud_cpp//bazel:googleapis.BUILD",
+    sha256 = "bf49dfee4daecfbcd38bd07cd9b0fd9e303452ed7f54dda56171b500c1234e2e",
+    strip_prefix = "googleapis-30717c0b0c9966906880703208a4c820411565c4",
+    url = "https://github.com/googleapis/googleapis/archive/30717c0b0c9966906880703208a4c820411565c4.tar.gz",
+    build_file = "@google_cloud_cpp//bazel:googleapis.BUILD",
 )
 
 http_archive(
-    name = "com_github_googleapis_google_cloud_cpp",
-    sha256 = "0c68782e57959c82e0c81def805c01460a042c1aae0c2feee905acaa2a2dc9bf",
-    strip_prefix = "google-cloud-cpp-2.22.0",
-    url = "https://github.com/googleapis/google-cloud-cpp/archive/v2.22.0.tar.gz",
+    name = "google_cloud_cpp",
+    sha256 = "8d398958cad2338087ed5321db1d2c70a078d5d9d4dde720449395a3365a9ced",
+    strip_prefix = "google-cloud-cpp-2.24.0",
+    url = "https://github.com/googleapis/google-cloud-cpp/archive/v2.24.0.tar.gz",
 )
 
 http_archive(
@@ -39,7 +39,7 @@ http_archive(
     url = "https://github.com/madler/zlib/archive/refs/tags/v1.2.13.tar.gz",
 )
 
-load("@com_github_googleapis_google_cloud_cpp//bazel:google_cloud_cpp_deps.bzl", "google_cloud_cpp_deps")
+load("@google_cloud_cpp//bazel:google_cloud_cpp_deps.bzl", "google_cloud_cpp_deps")
 
 google_cloud_cpp_deps()
 
