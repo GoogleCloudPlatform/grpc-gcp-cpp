@@ -27,7 +27,7 @@
 #include "parameters.h"
 #include "print_result.h"
 #include "runner.h"
-#include "test/core/util/stack_tracer.h"
+#include "test/core/test_util/stack_tracer.h"
 
 int main(int argc, char **argv) {
   grpc_core::testing::InitializeStackTracer(argv[0]);

@@ -75,8 +75,8 @@ cc_library(
         "runner_watcher",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
-        "@com_github_googleapis_google_cloud_cpp//:storage",
-        "@com_github_googleapis_google_cloud_cpp//:experimental-storage_grpc",
+        "@google_cloud_cpp//:storage",
+        "@google_cloud_cpp//:experimental-storage_grpc",
     ],
 )
 
@@ -232,7 +232,7 @@ cc_binary(
         "grpc_runner",
         "@com_google_googleapis//google/storage/v2:storage_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",
-        "@com_github_grpc_grpc//test/core/util:stack_tracer",
+        "@com_github_grpc_grpc//test/core/test_util:stack_tracer",
         "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/flags:parse",
         "@com_google_absl//absl/strings:str_format",
