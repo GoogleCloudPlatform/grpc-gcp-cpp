@@ -1,20 +1,18 @@
 name: Bazel Build
 on:
-    push: {}
-    pull_request: {}
+  push: {}
+  pull_request: {}
 jobs:
   build:
     name: Build everything
     runs-on: ubuntu-latest
     steps:
-        runs-on: ubuntu-latest
-        steps:
-        - uses: actions/checkout@v4
-        - uses: bazelbuild/setup-bazelisk@v3
-        - name: Mount bazel cache
-          uses: actions/cache@v4
-          with:
-            path: "~/.cache/bazel"
-            key: bazel
-        - name: Build
-          run: bazel build //...
+      - uses: actions/checkout@v4
+      - uses: bazelbuild/setup-bazelisk@v3
+      - name: Mount bazel cache
+        uses: actions/cache@v4
+        with:
+          path: "~/.cache/bazel"
+          key: bazel
+      - name: Build
+        run: bazel build //...
