@@ -11,9 +11,9 @@ http_archive(
 
 http_archive(
     name = "com_github_grpc_grpc",
-    sha256 = "d5509e40fb24f6390deeef8a88668124f4ec77d2ebb3b1a957b235a2f08b70c0",
-    strip_prefix = "grpc-1.64.0",
-    url = "https://github.com/grpc/grpc/archive/v1.64.0.tar.gz",
+    sha256 = "c5ad277fc21d4899f0e23f6f0337d8a2190d3c66c57ca868378be7c7bfa59fec",
+    strip_prefix = "grpc-1.64.1",
+    url = "https://github.com/grpc/grpc/archive/v1.64.1.tar.gz",
 )
 
 http_archive(
@@ -26,9 +26,9 @@ http_archive(
 
 http_archive(
     name = "google_cloud_cpp",
-    sha256 = "8d398958cad2338087ed5321db1d2c70a078d5d9d4dde720449395a3365a9ced",
-    strip_prefix = "google-cloud-cpp-2.24.0",
-    url = "https://github.com/googleapis/google-cloud-cpp/archive/v2.24.0.tar.gz",
+    sha256 = "6f58213e2af16326392da84cd8a52af78cb80bc47338eb87e87d14c14c0e6bad",
+    strip_prefix = "google-cloud-cpp-2.25.0",
+    url = "https://github.com/googleapis/google-cloud-cpp/archive/v2.25.0.tar.gz",
 )
 
 http_archive(
