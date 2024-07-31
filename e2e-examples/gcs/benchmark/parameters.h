@@ -54,6 +54,8 @@ struct Parameters {
   std::string report_file;
   std::string data_file;
 
+  std::string prometheus_endpoint;
+
   std::string host;
   std::string target_api_version;
   std::string access_token;

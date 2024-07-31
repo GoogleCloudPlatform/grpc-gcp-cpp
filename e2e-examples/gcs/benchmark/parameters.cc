@@ -60,6 +60,9 @@ ABSL_FLAG(std::string, report_file, "",
           "The file to append the line for the run");
 ABSL_FLAG(std::string, data_file, "", "The data file to dump the all data");
 
+ABSL_FLAG(std::string, prometheus_endpoint, "localhost:9465",
+          "Prometheus exporter endpoint");
+
 ABSL_FLAG(std::string, host, "", "Host to reach");
 ABSL_FLAG(std::string, target_api_version, "", "Target API version (for Json)");
 ABSL_FLAG(std::string, access_token, "", "Access token for auth");
@@ -127,6 +130,7 @@ absl::optional<Parameters> GetParameters() {
   p.report_tag = absl::GetFlag(FLAGS_report_tag);
   p.report_file = absl::GetFlag(FLAGS_report_file);
   p.data_file = absl::GetFlag(FLAGS_data_file);
+  p.prometheus_endpoint = absl::GetFlag(FLAGS_prometheus_endpoint);
   p.host = absl::GetFlag(FLAGS_host);
   p.target_api_version = absl::GetFlag(FLAGS_target_api_version);
   p.access_token = absl::GetFlag(FLAGS_access_token);
