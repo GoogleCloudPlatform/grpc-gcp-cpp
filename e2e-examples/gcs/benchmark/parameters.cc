@@ -60,7 +60,7 @@ ABSL_FLAG(std::string, report_file, "",
           "The file to append the line for the run");
 ABSL_FLAG(std::string, data_file, "", "The data file to dump the all data");
 
-ABSL_FLAG(std::string, prometheus_endpoint, "localhost:9465",
+ABSL_FLAG(std::string, prometheus_endpoint, "",
           "Prometheus exporter endpoint");
 
 ABSL_FLAG(std::string, host, "", "Host to reach");
