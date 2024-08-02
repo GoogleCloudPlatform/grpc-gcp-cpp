@@ -14,15 +14,15 @@
 
 #include "grpc_otel.h"
 
+#include <grpcpp/ext/otel_plugin.h>
+#include <grpcpp/grpcpp.h>
+
 #include "opentelemetry/exporters/prometheus/exporter_factory.h"
 #include "opentelemetry/exporters/prometheus/exporter_options.h"
 #include "opentelemetry/sdk/metrics/meter_provider.h"
 #include "opentelemetry/sdk/metrics/view/instrument_selector_factory.h"
 #include "opentelemetry/sdk/metrics/view/meter_selector_factory.h"
 #include "opentelemetry/sdk/metrics/view/view_factory.h"
-
-#include <grpcpp/ext/otel_plugin.h>
-#include <grpcpp/grpcpp.h>
 
 namespace {
 
@@ -66,5 +66,18 @@ absl::Status StartGrpcOpenTelemetry(std::string prometheus_endpoint) {
   return grpc::OpenTelemetryPluginBuilder()
       .SetMeterProvider(std::move(meter_provider))
       .AddOptionalLabel("grpc.lb.locality")
+      .EnableMetrics(
+          {"grpc.lb.wrr.rr_fallback",
+           "grpc.lb.wrr.endpoint_weight_not_yet_usable",
+           "grpc.lb.wrr.endpoint_weight_stale", "grpc.lb.wrr.endpoint_weights",
+           "grpc.lb.pick_first.disconnections",
+           "grpc.lb.pick_first.connection_attempts_succeeded",
+           "grpc.lb.pick_first.connection_attempts_failed",
+           "grpc.xds_client.connected", "grpc.xds_client.server_failure",
+           "grpc.xds_client.resource_updates_valid",
+           "grpc.xds_client.resource_updates_invalid",
+           "grpc.xds_client.resources", "grpc.lb.rls.cache_entries",
+           "grpc.lb.rls.cache_size", "grpc.lb.rls.default_target_picks",
+           "grpc.lb.rls.target_picks", "grpc.lb.rls.failed_picks"})
       .BuildAndRegisterGlobal();
 }
