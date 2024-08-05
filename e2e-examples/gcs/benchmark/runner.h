@@ -17,6 +17,7 @@
 
 class Runner {
  public:
+  virtual ~Runner() = default;
   virtual bool Run() = 0;
 };
 
