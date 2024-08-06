@@ -23,6 +23,7 @@
 #include "channel_policy.h"
 #include "gcscpp_runner.h"
 #include "grpc_admin.h"
+#include "grpc_otel.h"
 #include "grpc_runner.h"
 #include "parameters.h"
 #include "print_result.h"
@@ -38,8 +39,17 @@ int main(int argc, char **argv) {
     return 1;
   }
 
+  if (parameters->prometheus_endpoint != "") {
+    absl::Status s = StartGrpcOpenTelemetry(parameters->prometheus_endpoint);
+    if (!s.ok()) {
+      std::cerr << "OpenTelemetry failure: " << s.ToString().c_str()
+                << std::endl;
+      return 1;
+    }
+  }
+
   if (parameters->grpc_admin > 0) {
-    StartGrpcAdmin(parameters->grpc_admin );
+    StartGrpcAdmin(parameters->grpc_admin);
   }
 
   // Create a runner based on a client

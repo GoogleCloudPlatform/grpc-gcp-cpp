@@ -96,6 +96,23 @@ cc_library(
 )
 
 cc_library(
+    name = "grpc_otel",
+    hdrs = [
+        "grpc_otel.h",
+    ],
+    srcs = [
+        "grpc_otel.cc",
+    ],
+    deps = [
+        "@com_google_absl//absl/status",
+        "@com_github_grpc_grpc//:grpc++",
+        "@com_github_grpc_grpc//:grpcpp_otel_plugin",
+        "@io_opentelemetry_cpp//exporters/prometheus:prometheus_exporter",
+        "@io_opentelemetry_cpp//sdk/src/metrics",
+    ],
+)
+
+cc_library(
     name = "grpc_runner",
     hdrs = [
         "grpc_runner.h",
@@ -229,6 +246,7 @@ cc_binary(
         "runner_watcher",
         "gcscpp_runner",
         "grpc_admin",
+        "grpc_otel",
         "grpc_runner",
         "@com_google_googleapis//google/storage/v2:storage_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",
