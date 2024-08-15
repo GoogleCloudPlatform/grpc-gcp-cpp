@@ -65,6 +65,8 @@ struct Parameters {
   int carg;
   int ctest;
   int mtest;
+
+  int prometheus_port;
 };
 
 absl::optional<Parameters> GetParameters();

@@ -76,17 +76,19 @@ ABSL_FLAG(
     "Parameter for cpolicy (e.g. pool uses this as the number of channels)");
 ABSL_FLAG(int, ctest, 0, "Test to get a list of peers from grpclb");
 ABSL_FLAG(int, mtest, 0, "Test to get metadata");
+ABSL_FLAG(int, prometheus_port, 0,
+          "Port used to serve prometheus metrics");
 
 const char *ToOperationTypeString(OperationType operationType) {
   switch (operationType) {
-    case OperationType::Read:
-      return "Read";
-    case OperationType::RandomRead:
-      return "Random-Read";
-    case OperationType::Write:
-      return "Write";
-    default:
-      return "None";
+  case OperationType::Read:
+    return "Read";
+  case OperationType::RandomRead:
+    return "Random-Read";
+  case OperationType::Write:
+    return "Write";
+  default:
+    return "None";
   }
 }
 
@@ -147,5 +149,6 @@ absl::optional<Parameters> GetParameters() {
   p.carg = absl::GetFlag(FLAGS_carg);
   p.ctest = absl::GetFlag(FLAGS_ctest);
   p.mtest = absl::GetFlag(FLAGS_mtest);
+  p.prometheus_port = absl::GetFlag(FLAGS_prometheus_port);
   return p;
 }

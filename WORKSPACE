@@ -51,6 +51,17 @@ switched_rules_by_language(
     grpc = True,
 )
 
+
+# Load OpenTelemetry dependencies after load.
+load("@io_opentelemetry_cpp//bazel:repository.bzl", "opentelemetry_cpp_deps")
+
+opentelemetry_cpp_deps()
+
+# (required after v1.8.0) Load extra dependencies required for OpenTelemetry
+load("@io_opentelemetry_cpp//bazel:extra_deps.bzl", "opentelemetry_extra_deps")
+
+opentelemetry_extra_deps()
+
 load('@com_github_grpc_grpc//bazel:grpc_deps.bzl', 'grpc_deps')
 
 grpc_deps()
