@@ -4,31 +4,31 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "com_google_absl",
-    sha256 = "f50e5ac311a81382da7fa75b97310e4b9006474f9560ac46f54a9967f07d4ae3",
-    strip_prefix = "abseil-cpp-20240722.0",
-    url = "https://github.com/abseil/abseil-cpp/archive/20240722.0.tar.gz",
+    sha256 = "40cee67604060a7c8794d931538cb55f4d444073e556980c88b6c49bb9b19bb7",
+    strip_prefix = "abseil-cpp-20240722.1",
+    url = "https://github.com/abseil/abseil-cpp/archive/20240722.1.tar.gz",
 )
 
 http_archive(
     name = "com_github_grpc_grpc",
-    sha256 = "79ed4ab72fa9589b20f8b0b76c16e353e4cfec1d773d33afad605d97b5682c61",
-    strip_prefix = "grpc-1.66.1",
-    url = "https://github.com/grpc/grpc/archive/v1.66.1.tar.gz",
+    sha256 = "cd256d91781911d46a57506978b3979bfee45d5086a1b6668a3ae19c5e77f8dc",
+    strip_prefix = "grpc-1.69.0",
+    url = "https://github.com/grpc/grpc/archive/v1.69.0.tar.gz",
 )
 
 http_archive(
     name = "com_google_googleapis",
-    sha256 = "435ae615a71ab2718d5e4b348b2442d896a03f9c1ea98182dc2ea927f383acd2",
-    strip_prefix = "googleapis-6a474b31c53cc1797710206824a17b364a835d2d",
-    url = "https://github.com/googleapis/googleapis/archive/6a474b31c53cc1797710206824a17b364a835d2d.tar.gz",
+    sha256 = "5a9450cf1ad1187c82a2b5cdff53e4d584b6d45292b5f71b504083acb03ad7d0",
+    strip_prefix = "googleapis-280725e991516d4a0f136268faf5aa6d32d21b54",
+    url = "https://github.com/googleapis/googleapis/archive/280725e991516d4a0f136268faf5aa6d32d21b54.tar.gz",
     build_file = "@google_cloud_cpp//bazel:googleapis.BUILD",
 )
 
 http_archive(
     name = "google_cloud_cpp",
-    sha256 = "758e1eca8186b962516c0659b34ce1768ba1c9769cfd998c5bbffb084ad901ff",
-    strip_prefix = "google-cloud-cpp-2.29.0",
-    url = "https://github.com/googleapis/google-cloud-cpp/archive/v2.29.0.tar.gz",
+    sha256 = "81ea28cf9e5bb032d356b0187409f30b1035f8ea5b530675ea248c8a6c0070aa",
+    strip_prefix = "google-cloud-cpp-2.35.0",
+    url = "https://github.com/googleapis/google-cloud-cpp/archive/v2.35.0.tar.gz",
 )
 
 http_archive(
