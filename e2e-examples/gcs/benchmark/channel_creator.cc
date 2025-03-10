@@ -65,6 +65,7 @@ std::shared_ptr<grpc::Channel> CreateGrpcChannel(absl::string_view host,
                             1);  // Enable DirectPath
       }
     }
+    channel_cred = grpc::InsecureChannelCredentials();
 
     // Use a local subchannel pool to avoid contention in gRPC.
     channel_args.SetInt(GRPC_ARG_USE_LOCAL_SUBCHANNEL_POOL, 1);

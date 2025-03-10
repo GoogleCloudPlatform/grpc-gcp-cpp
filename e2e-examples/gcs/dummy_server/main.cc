@@ -20,6 +20,7 @@
 #include <grpcpp/grpcpp.h>
 #include <grpcpp/health_check_service_interface.h>
 
+#include <algorithm>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -58,8 +59,7 @@ class StorageServiceImpl final
     const int64_t object_size =
         GcsUtil::GetObjectSize(request->bucket(), request->object());
     if (object_size < 0) {
-      status = Status(StatusCode::NOT_FOUND,
-                      "Object is not found");
+      status = Status(StatusCode::NOT_FOUND, "Object is not found");
     } else {
       status = Status::OK;
       reply->set_size(object_size);
@@ -71,31 +71,71 @@ class StorageServiceImpl final
 
   grpc::ServerWriteReactor<ReadObjectResponse>* ReadObject(
       CallbackServerContext* context,
-      const ReadObjectRequest* rectangle) override {
-    return nullptr;
+      const ReadObjectRequest* request) override {
+    class Reactor : public grpc::ServerWriteReactor<ReadObjectResponse> {
+     public:
+      Reactor(const ReadObjectRequest* request) {
+        const int64_t object_size =
+            GcsUtil::GetObjectSize(request->bucket(), request->object());
+        if (object_size < 0) {
+          Finish(Status(StatusCode::NOT_FOUND, "Object is not found"));
+          return;
+        }
+        left_size_ = object_size;
+        if (request->read_limit() > 0) {
+          left_size_ = std::min(left_size_, request->read_limit());
+        }
+        chunk_data_ = GcsUtil::GetObjectDataChunk(
+            google::storage::v2::ServiceConstants::MAX_READ_CHUNK_BYTES);
+        MaybeWriteNext();
+      }
+
+      void OnWriteDone(bool ok) override {
+        if (ok) {
+          MaybeWriteNext();
+        } else {
+          Finish(grpc::Status(grpc::StatusCode::UNKNOWN, "Unexpected failure"));
+        }
+      }
+
+      void OnDone() override { delete this; }
+
+     private:
+      void MaybeWriteNext() {
+        if (left_size_ == 0) {
+          Finish(grpc::Status::OK);
+          return;
+        }
+        auto data_size =
+            std::min(left_size_, static_cast<int64_t>(chunk_data_.size()));
+        response_.mutable_checksummed_data()->set_content(
+            absl::string_view(chunk_data_.c_str(), data_size));
+        left_size_ -= data_size;
+        StartWrite(&response_);
+      }
+
+     private:
+      int64_t left_size_;
+      std::string chunk_data_;
+      ReadObjectResponse response_;
+    };
+
+    return new Reactor(request);
   }
 
-  ServerUnaryReactor* StartResumableWrite(
-      CallbackServerContext* context, const StartResumableWriteRequest* request,
-      StartResumableWriteResponse* reply) override {
-    /*
-    std::string prefix("Hello ");
-    reply->set_message(prefix + request->name());
-    */
+  /*
+    ServerUnaryReactor* StartResumableWrite(
+        CallbackServerContext* context, const StartResumableWriteRequest*
+    request, StartResumableWriteResponse* reply) override { ServerUnaryReactor*
+    reactor = context->DefaultReactor(); reactor->Finish(Status::OK); return
+    reactor;
+    }
 
-    ServerUnaryReactor* reactor = context->DefaultReactor();
-    reactor->Finish(Status::OK);
-    return reactor;
-  }
-
-  grpc::ServerReadReactor<WriteObjectRequest>* WriteObject(
-      CallbackServerContext* context, WriteObjectResponse* summary) override {
-    return nullptr;
-  }
-  //
-  // ReadObject // server-stream
-  // StartResumableWrite
-  // WriteObject // client-stream
+    grpc::ServerReadReactor<WriteObjectRequest>* WriteObject(
+        CallbackServerContext* context, WriteObjectResponse* summary) override {
+      return nullptr;
+    }
+  */
 };
 
 void RunServer(uint16_t port) {
@@ -105,6 +145,7 @@ void RunServer(uint16_t port) {
   grpc::EnableDefaultHealthCheckService(true);
   grpc::reflection::InitProtoReflectionServerBuilderPlugin();
   ServerBuilder builder;
+
   // Listen on the given address without any authentication mechanism.
   builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
   // Register "service" as the instance through which we'll communicate with
