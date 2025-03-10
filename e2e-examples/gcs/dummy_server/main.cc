@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015 gRPC authors.
+ * Copyright 2025 gRPC authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 #include <grpcpp/health_check_service_interface.h>
 
 #include <algorithm>
+#include <fstream>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -48,6 +49,9 @@ using ::google::storage::v2::WriteObjectRequest;
 using ::google::storage::v2::WriteObjectResponse;
 
 ABSL_FLAG(uint16_t, port, 50051, "Server port for the service");
+ABSL_FLAG(std::string, ssl_key, "", "Path to the server private key file");
+ABSL_FLAG(std::string, ssl_cert, "",
+          "Path to the server SSL certification chain file");
 
 // Logic and data behind the server's behavior.
 class StorageServiceImpl final
@@ -123,40 +127,66 @@ class StorageServiceImpl final
     return new Reactor(request);
   }
 
-  /*
-    ServerUnaryReactor* StartResumableWrite(
-        CallbackServerContext* context, const StartResumableWriteRequest*
-    request, StartResumableWriteResponse* reply) override { ServerUnaryReactor*
-    reactor = context->DefaultReactor(); reactor->Finish(Status::OK); return
-    reactor;
-    }
+  grpc::ServerReadReactor<WriteObjectRequest>* WriteObject(
+      CallbackServerContext* context, WriteObjectResponse* response) override {
+    class Reactor : public grpc::ServerReadReactor<WriteObjectRequest> {
+     public:
+      explicit Reactor(WriteObjectResponse* response) { StartRead(&request_); }
 
-    grpc::ServerReadReactor<WriteObjectRequest>* WriteObject(
-        CallbackServerContext* context, WriteObjectResponse* summary) override {
-      return nullptr;
-    }
-  */
+      void OnReadDone(bool ok) override {
+        if (!ok) {
+          Finish(grpc::Status::OK);
+          return;
+        }
+        StartRead(&request_);
+      }
+
+      void OnDone() override { delete this; }
+
+     private:
+      WriteObjectRequest request_;
+      WriteObjectResponse* response_ = nullptr;
+    };
+    return new Reactor(response);
+  }
 };
+
+static std::string LoadStringFromFile(std::string path) {
+  std::ifstream file(path);
+  if (!file.is_open()) {
+    std::cout << "Failed to open " << path << std::endl;
+    abort();
+  }
+  std::stringstream sstr;
+  sstr << file.rdbuf();
+  return sstr.str();
+}
 
 void RunServer(uint16_t port) {
   std::string server_address = absl::StrFormat("0.0.0.0:%d", port);
-  StorageServiceImpl service;
 
   grpc::EnableDefaultHealthCheckService(true);
   grpc::reflection::InitProtoReflectionServerBuilderPlugin();
-  ServerBuilder builder;
 
-  // Listen on the given address without any authentication mechanism.
-  builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
-  // Register "service" as the instance through which we'll communicate with
-  // clients. In this case it corresponds to an *synchronous* service.
+  ServerBuilder builder;
+  if (absl::GetFlag(FLAGS_ssl_key).empty()) {
+    builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
+  } else {
+    grpc::SslServerCredentialsOptions::PemKeyCertPair key_cert_pair = {
+        LoadStringFromFile(absl::GetFlag(FLAGS_ssl_key)),
+        LoadStringFromFile(absl::GetFlag(FLAGS_ssl_cert))};
+    grpc::SslServerCredentialsOptions ssl_options;
+    ssl_options.pem_key_cert_pairs.emplace_back(key_cert_pair);
+    builder.AddListeningPort(server_address,
+                             grpc::SslServerCredentials(ssl_options));
+  }
+
+  StorageServiceImpl service;
   builder.RegisterService(&service);
-  // Finally assemble the server.
+
   std::unique_ptr<Server> server(builder.BuildAndStart());
   std::cout << "Server listening on " << server_address << std::endl;
 
-  // Wait for the server to shutdown. Note that some other thread must be
-  // responsible for shutting down the server for this call to ever return.
   server->Wait();
 }
 

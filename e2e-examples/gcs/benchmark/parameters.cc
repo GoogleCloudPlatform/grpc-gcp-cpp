@@ -60,13 +60,15 @@ ABSL_FLAG(std::string, report_file, "",
           "The file to append the line for the run");
 ABSL_FLAG(std::string, data_file, "", "The data file to dump the all data");
 
-ABSL_FLAG(std::string, prometheus_endpoint, "",
-          "Prometheus exporter endpoint");
+ABSL_FLAG(std::string, prometheus_endpoint, "", "Prometheus exporter endpoint");
 
 ABSL_FLAG(std::string, host, "", "Host to reach");
 ABSL_FLAG(std::string, target_api_version, "", "Target API version (for Json)");
 ABSL_FLAG(std::string, access_token, "", "Access token for auth");
 ABSL_FLAG(std::string, network, "default", "Network path (default, cfe, dp)");
+ABSL_FLAG(std::string, ssl_cert, "",
+          "Path to the server SSL certification chain file (use - for insecure "
+          "connection)");
 ABSL_FLAG(bool, rr, false,
           "Use round_robin grpclb policy (otherwise pick_first)");
 ABSL_FLAG(bool, td, false, "Use Traffic Director");
@@ -135,6 +137,7 @@ absl::optional<Parameters> GetParameters() {
   p.target_api_version = absl::GetFlag(FLAGS_target_api_version);
   p.access_token = absl::GetFlag(FLAGS_access_token);
   p.network = absl::GetFlag(FLAGS_network);
+  p.ssl_cert = absl::GetFlag(FLAGS_ssl_cert);
   p.rr = absl::GetFlag(FLAGS_rr);
   p.td = absl::GetFlag(FLAGS_td);
   p.tx_zerocopy = absl::GetFlag(FLAGS_tx_zerocopy);
