@@ -14,6 +14,8 @@
 
 #include "channel_creator.h"
 
+#include <fstream>
+
 #include <grpcpp/channel.h>
 #include <grpcpp/client_context.h>
 #include <grpcpp/create_channel.h>
@@ -21,9 +23,21 @@
 
 #include "absl/strings/str_format.h"
 
+static std::string LoadStringFromFile(std::string path) {
+  std::ifstream file(path);
+  if (!file.is_open()) {
+    std::cout << "Failed to open " << path << std::endl;
+    abort();
+  }
+  std::stringstream sstr;
+  sstr << file.rdbuf();
+  return sstr.str();
+}
+
 std::shared_ptr<grpc::Channel> CreateGrpcChannel(absl::string_view host,
                                                  absl::string_view access_token,
                                                  absl::string_view network,
+                                                 absl::string_view ssl_cert,
                                                  bool use_rr, bool use_td,
                                                  bool use_tx_zerocopy) {
   std::string target = std::string(host);
@@ -63,6 +77,16 @@ std::shared_ptr<grpc::Channel> CreateGrpcChannel(absl::string_view host,
       if (!use_td) {
         channel_args.SetInt("grpc.dns_enable_srv_queries",
                             1);  // Enable DirectPath
+      }
+    } else {
+      if (ssl_cert == "-") {
+        channel_cred = grpc::InsecureChannelCredentials();
+      } else if (ssl_cert == "") {
+        channel_cred = grpc::SslCredentials(grpc::SslCredentialsOptions());
+      } else  {
+        grpc::SslCredentialsOptions ssl_options;
+        ssl_options.pem_root_certs = LoadStringFromFile(std::string(ssl_cert));
+        channel_cred = grpc::SslCredentials(ssl_options);
       }
     }
 
