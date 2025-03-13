@@ -79,14 +79,16 @@ std::shared_ptr<grpc::Channel> CreateGrpcChannel(absl::string_view host,
                             1);  // Enable DirectPath
       }
     } else {
-      if (ssl_cert == "-") {
-        channel_cred = grpc::InsecureChannelCredentials();
-      } else if (ssl_cert == "") {
-        channel_cred = grpc::SslCredentials(grpc::SslCredentialsOptions());
-      } else  {
-        grpc::SslCredentialsOptions ssl_options;
-        ssl_options.pem_root_certs = LoadStringFromFile(std::string(ssl_cert));
-        channel_cred = grpc::SslCredentials(ssl_options);
+      if (!use_td) {
+        if (ssl_cert == "-") {
+          channel_cred = grpc::InsecureChannelCredentials();
+        } else if (ssl_cert == "") {
+          channel_cred = grpc::SslCredentials(grpc::SslCredentialsOptions());
+        } else  {
+          grpc::SslCredentialsOptions ssl_options;
+          ssl_options.pem_root_certs = LoadStringFromFile(std::string(ssl_cert));
+          channel_cred = grpc::SslCredentials(ssl_options);
+        }
       }
     }
 
