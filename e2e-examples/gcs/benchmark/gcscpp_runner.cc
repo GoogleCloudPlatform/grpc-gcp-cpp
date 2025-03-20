@@ -61,9 +61,8 @@ static google::cloud::storage::Client CreateClient(
       opts.set<google::cloud::GrpcChannelArgumentsNativeOption>(
           channel_arguments);
     }
-    return ::google::cloud::storage_experimental::DefaultGrpcClient(
-        opts.set<google::cloud::storage_experimental::GrpcPluginOption>("media")
-            .set<google::cloud::EndpointOption>(target));
+    return ::google::cloud::storage::MakeGrpcClient(
+        opts.set<google::cloud::EndpointOption>(target));
   } else {
     if (!parameters.host.empty()) {
       opts.set<google::cloud::storage::RestEndpointOption>(parameters.host);

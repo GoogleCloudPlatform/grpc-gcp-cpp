@@ -14,12 +14,12 @@
 
 #include "channel_creator.h"
 
-#include <fstream>
-
 #include <grpcpp/channel.h>
 #include <grpcpp/client_context.h>
 #include <grpcpp/create_channel.h>
 #include <grpcpp/security/credentials.h>
+
+#include <fstream>
 
 #include "absl/strings/str_format.h"
 
@@ -37,6 +37,7 @@ static std::string LoadStringFromFile(std::string path) {
 std::shared_ptr<grpc::Channel> CreateGrpcChannel(absl::string_view host,
                                                  absl::string_view access_token,
                                                  absl::string_view network,
+                                                 absl::string_view cred,
                                                  absl::string_view ssl_cert,
                                                  bool use_rr, bool use_td,
                                                  bool use_tx_zerocopy) {
@@ -79,15 +80,21 @@ std::shared_ptr<grpc::Channel> CreateGrpcChannel(absl::string_view host,
                             1);  // Enable DirectPath
       }
     } else {
-      if (!use_td) {
-        if (ssl_cert == "-") {
+      if (!cred.empty()) {
+        if (cred == "insecure") {
           channel_cred = grpc::InsecureChannelCredentials();
-        } else if (ssl_cert == "") {
-          channel_cred = grpc::SslCredentials(grpc::SslCredentialsOptions());
-        } else  {
-          grpc::SslCredentialsOptions ssl_options;
-          ssl_options.pem_root_certs = LoadStringFromFile(std::string(ssl_cert));
-          channel_cred = grpc::SslCredentials(ssl_options);
+        } else if (cred == "ssl") {
+          if (ssl_cert == "") {
+            channel_cred = grpc::SslCredentials(grpc::SslCredentialsOptions());
+          } else {
+            grpc::SslCredentialsOptions ssl_options;
+            ssl_options.pem_root_certs =
+                LoadStringFromFile(std::string(ssl_cert));
+            channel_cred = grpc::SslCredentials(ssl_options);
+          }
+        } else if (cred == "alts") {
+          channel_cred = grpc::experimental::AltsCredentials(
+              grpc::experimental::AltsCredentialsOptions());
         }
       }
     }
