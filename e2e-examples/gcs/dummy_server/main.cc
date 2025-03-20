@@ -45,6 +45,7 @@ using ::google::storage::v2::WriteObjectRequest;
 using ::google::storage::v2::WriteObjectResponse;
 
 ABSL_FLAG(uint16_t, port, 50051, "Server port for the service");
+ABSL_FLAG(std::string, cred, "insecure", "Credential type (insecure,ssl,alts)");
 ABSL_FLAG(std::string, ssl_key, "", "Path to the server private key file");
 ABSL_FLAG(std::string, ssl_cert, "",
           "Path to the server SSL certification chain file");
@@ -165,9 +166,10 @@ void RunServer(uint16_t port) {
   grpc::reflection::InitProtoReflectionServerBuilderPlugin();
 
   ServerBuilder builder;
-  if (absl::GetFlag(FLAGS_ssl_key).empty()) {
+  const std::string cred = absl::GetFlag(FLAGS_cred);
+  if (cred == "insecure") {
     builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
-  } else {
+  } else if (cred == "ssl") {
     grpc::SslServerCredentialsOptions::PemKeyCertPair key_cert_pair = {
         LoadStringFromFile(absl::GetFlag(FLAGS_ssl_key)),
         LoadStringFromFile(absl::GetFlag(FLAGS_ssl_cert))};
@@ -175,6 +177,13 @@ void RunServer(uint16_t port) {
     ssl_options.pem_key_cert_pairs.emplace_back(key_cert_pair);
     builder.AddListeningPort(server_address,
                              grpc::SslServerCredentials(ssl_options));
+  } else if (cred == "alts") {
+    grpc::experimental::AltsServerCredentialsOptions alts_opts;
+    builder.AddListeningPort(
+        server_address, grpc::experimental::AltsServerCredentials(alts_opts));
+  } else {
+    std::cout << "Unknown cred type: " << cred << std::endl;
+    exit(1);
   }
 
   StorageServiceImpl service;

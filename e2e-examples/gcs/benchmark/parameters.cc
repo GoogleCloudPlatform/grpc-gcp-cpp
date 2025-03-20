@@ -66,6 +66,7 @@ ABSL_FLAG(std::string, host, "", "Host to reach");
 ABSL_FLAG(std::string, target_api_version, "", "Target API version (for Json)");
 ABSL_FLAG(std::string, access_token, "", "Access token for auth");
 ABSL_FLAG(std::string, network, "default", "Network path (default, cfe, dp)");
+ABSL_FLAG(std::string, cred, "", "Credential type (insecure,ssl,alts)");
 ABSL_FLAG(std::string, ssl_cert, "",
           "Path to the server SSL certification chain file (use - for insecure "
           "connection)");
@@ -137,6 +138,7 @@ absl::optional<Parameters> GetParameters() {
   p.target_api_version = absl::GetFlag(FLAGS_target_api_version);
   p.access_token = absl::GetFlag(FLAGS_access_token);
   p.network = absl::GetFlag(FLAGS_network);
+  p.cred = absl::GetFlag(FLAGS_cred);
   p.ssl_cert = absl::GetFlag(FLAGS_ssl_cert);
   p.rr = absl::GetFlag(FLAGS_rr);
   p.td = absl::GetFlag(FLAGS_td);

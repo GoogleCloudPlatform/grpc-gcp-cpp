@@ -24,6 +24,7 @@
 std::shared_ptr<grpc::Channel> CreateGrpcChannel(absl::string_view host,
                                                  absl::string_view access_token,
                                                  absl::string_view network,
+                                                 absl::string_view cred,
                                                  absl::string_view ssl_cert,
                                                  bool use_rr, bool use_td,
                                                  bool use_tx_zerocopy);

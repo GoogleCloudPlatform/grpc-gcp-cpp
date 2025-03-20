@@ -57,8 +57,8 @@ extern int run_mtest(
 static std::shared_ptr<grpc::Channel> CreateBenchmarkGrpcChannel(
     const Parameters& parameters) {
   return CreateGrpcChannel(parameters.host, parameters.access_token,
-                           parameters.network, parameters.ssl_cert,
-                           parameters.rr, parameters.td,
+                           parameters.network, parameters.cred,
+                           parameters.ssl_cert, parameters.rr, parameters.td,
                            parameters.tx_zerocopy);
 }
 

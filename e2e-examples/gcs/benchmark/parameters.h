@@ -60,6 +60,7 @@ struct Parameters {
   std::string target_api_version;
   std::string access_token;
   std::string network;
+  std::string cred;
   std::string ssl_cert;
   bool rr;
   bool td;
