@@ -86,8 +86,8 @@ class StorageServiceImpl final
         if (request->read_limit() > 0) {
           left_size_ = std::min(left_size_, request->read_limit());
         }
-        chunk_data_ = GcsUtil::GetObjectDataChunk(
-            google::storage::v2::ServiceConstants::MAX_READ_CHUNK_BYTES);
+        chunk_data_ = absl::Cord(GcsUtil::GetObjectDataChunk(
+            google::storage::v2::ServiceConstants::MAX_READ_CHUNK_BYTES));
         MaybeWriteNext();
       }
 
@@ -110,14 +110,14 @@ class StorageServiceImpl final
         auto data_size =
             std::min(left_size_, static_cast<int64_t>(chunk_data_.size()));
         response_.mutable_checksummed_data()->set_content(
-            absl::string_view(chunk_data_.c_str(), data_size));
+            chunk_data_.Subcord(0, data_size));
         left_size_ -= data_size;
         StartWrite(&response_);
       }
 
      private:
       int64_t left_size_;
-      std::string chunk_data_;
+      absl::Cord chunk_data_;
       ReadObjectResponse response_;
     };
 
